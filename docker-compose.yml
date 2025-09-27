@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  app:
+    image: whitedeepdive/mobile-environment-app:latest
+    container_name: my-app
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+
+
+
+volumes:
+    mysql_data:
