@@ -4,6 +4,7 @@ services:
     image: whitedeepdive/mobile-environment-app:latest
     container_name: mobile-environment-app
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}

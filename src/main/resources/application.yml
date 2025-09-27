@@ -1,11 +1,7 @@
+## 공통 설정 파일
 spring:
   jackson:
     default-property-inclusion: non_null
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://db:${DB_PORT}/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
