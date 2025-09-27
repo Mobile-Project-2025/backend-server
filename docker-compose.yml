@@ -1,4 +1,4 @@
-version: "3.8"
+
 services:
   app:
     image: whitedeepdive/mobile-environment-app:latest
