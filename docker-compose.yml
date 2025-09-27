@@ -2,7 +2,7 @@
 services:
   app:
     image: whitedeepdive/mobile-environment-app:latest
-    container_name: my-app
+    container_name: mobile-environment-app
     environment:
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
@@ -19,6 +19,7 @@ services:
   db:
     image: mysql:8.0
     restart: always
+    container_name: mobile-environment-db
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
