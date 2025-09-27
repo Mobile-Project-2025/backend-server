@@ -54,7 +54,6 @@ jobs:
               key: ${{ secrets.EC2_SSH_KEY }}
               source: "docker-compose.yml"
               target: "~/app/"
-
           - name: EC2에 .env 전송
             uses: appleboy/ssh-action@v1.2.0
             with:
