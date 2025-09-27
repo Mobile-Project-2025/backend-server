@@ -65,6 +65,7 @@ jobs:
                 cd ~/app
                 echo "${{ secrets.ENV_FILE }}" > .env
 
+
           - name: 배포 실행
             uses: appleboy/ssh-action@v1.2.0
             with:
