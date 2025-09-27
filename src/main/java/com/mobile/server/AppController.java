@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AppController {
 
-    @GetMapping(value = "/",consumes = "application/json", produces = "application/json")
+    @GetMapping(value = "/",consumes = "application/json")
     @Operation(summary = "Test API", description = "Returns a simple Hello World message.")
     public ResponseEntity<String> home(){
         return ResponseEntity.ok("Hello World");
