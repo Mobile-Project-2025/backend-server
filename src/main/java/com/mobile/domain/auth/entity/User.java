@@ -13,12 +13,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String nickname;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true, length = 8)
     private String studentId;
 
+    @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private RoleType role;
 }
