@@ -42,4 +42,10 @@ public class AuthController {
     public ResponseEntity<String> logout() {
         return ResponseEntity.ok("로그아웃 성공");
     }
+
+    //Refresh 토큰 (나중에 구현)
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh() {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("Refresh not implemented yet");
+    }
 }
