@@ -1,4 +1,8 @@
 package com.mobile.domain.auth.jwt;
 
-public class TokenProvider {
+public interface TokenProvider {
+    String createAccessToken(Long userId, String role);
+    String createRefreshToken(Long userId, String rotateId);
+    Long parseUserId(String token);
+    String parseRole(String token);
 }
