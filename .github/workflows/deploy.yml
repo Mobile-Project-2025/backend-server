@@ -23,6 +23,8 @@ jobs:
             run: chmod +x gradlew
 
           - name: Build with Gradle
+            env:
+              SPRING_JWT_SECRET: ${{ secrets.JWT_SECRET }}
             run: ./gradlew clean build -x test
 
           - name : 도커 로그인
