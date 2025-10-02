@@ -1,4 +1,4 @@
-package com.mobile.common.config;
+package com.mobile.server.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
