@@ -16,6 +16,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    //회원가입
     @Transactional
     public void register(SignUpReq signUpReq) {
         if (userRepository.existsByLoginId(signUpReq.getStudentId())) {
@@ -30,5 +31,16 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    //로그인 사용자 검증
+    @Transactional(readOnly = true)
+    public User verify(String studentId, String rawPassword) {
+        User user = userRepository.findByLoginId(studentId)
+                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
+        }
+        return user;
     }
 }
