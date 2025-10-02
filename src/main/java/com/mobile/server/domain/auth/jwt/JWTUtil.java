@@ -20,7 +20,7 @@ public class JWTUtil {
     //AccessToken 유효기간(15분)
     private static final long ACCESS_TTL_MS = 15 * 60 * 1000;
 
-    public JWTUtil(@Value("${jwt.secret}") String secret) {
+    public JWTUtil(@Value("${spring.jwt.secret}") String secret) {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
     }
 
