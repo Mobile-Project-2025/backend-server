@@ -1,4 +1,6 @@
 package com.mobile.domain.auth.jwt;
 
-public class TokenType {
+public enum TokenType {
+    ACCESS,
+    REFRESH
 }

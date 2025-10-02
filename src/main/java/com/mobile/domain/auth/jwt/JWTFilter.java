@@ -24,15 +24,20 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
+        String token = authHeader.substring(7).trim();
+        if (token.isEmpty()) {
+            chain.doFilter(request, response);
+            return;
+        }
         try {
-            if (jwtService.validateToken(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            if (!jwtService.validateToken(token)) {
+                chain.doFilter(request, response);
                 return;
             }
 
@@ -52,11 +57,10 @@ public class JWTFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            chain.doFilter(request, response);
             return;
         }
 
         chain.doFilter(request, response);
     }
-
 }
