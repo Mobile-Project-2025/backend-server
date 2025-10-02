@@ -21,7 +21,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -31,13 +31,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
         try {
-            if (jwtService.isExpired(token)) {
+            if (jwtService.validateToken(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
 
-            Long userId = jwtService.parseUserId(token);
-            String role = jwtService.parseRole(token);
+            Long userId = jwtService.getUserIdFromToken(token);
+            String role = jwtService.getRoleFromToken(token);
 
             UserDto principal = new UserDto();
             principal.setId(userId);
