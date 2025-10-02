@@ -1,27 +1,40 @@
 package com.mobile.domain.auth.jwt;
 
+import com.mobile.domain.auth.entity.User;
+import com.mobile.domain.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class JWTService implements TokenProvider{
+public class JWTService {
+
     private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public JWTService(JWTUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    //AccessToken 발급
+    public String generateAccessToken(User user) {
+        return jwtUtil.createAccessToken(user.getId(), user.getRole().name());
     }
 
-    public String createToken(Long userId, String roleName) {
-        return jwtUtil.createJwt(userId, roleName, 24L * 60 * 60 * 1000); // 24h
+    //토큰 유효성 검사
+    public boolean validateToken(String token) {
+        return !jwtUtil.isExpired(token);
     }
 
-    public Boolean isExpired(String token) {
-        return jwtUtil.isExpired(token);
+    //UserId 추출
+    public Long getUserIdFromToken(String token) {
+        return jwtUtil.parseUserId(token);
     }
 
-    public Long parseUserId(String token) { return jwtUtil.parseUserId(token); }
+    //Role 추출
+    public String getRoleFromToken(String token) {
+        return jwtUtil.parseRole(token);
+    }
 
-    public String parseRole(String token) { return jwtUtil.parseRole(token); }
-
+    //Token -> User 조회
+    public User findUserFromToken(String token) {
+        Long userId = jwtUtil.parseUserId(token);
+        return userRepository.findById(userId).orElseThrow();
+    }
 }
