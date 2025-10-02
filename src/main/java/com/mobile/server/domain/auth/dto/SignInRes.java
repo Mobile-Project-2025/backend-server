@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SignInRes {
     String accessToken;
-    String studentId;
+    String nickname;
     RoleType role;
 }
