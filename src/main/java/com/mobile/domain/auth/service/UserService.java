@@ -19,7 +19,7 @@ public class UserService {
     //회원가입
     @Transactional
     public void register(SignUpReq signUpReq) {
-        if (userRepository.existsByLoginId(signUpReq.getStudentId())) {
+        if (userRepository.existsByStudentId(signUpReq.getStudentId())) {
             throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
         }
 
@@ -36,7 +36,7 @@ public class UserService {
     //로그인 사용자 검증
     @Transactional(readOnly = true)
     public User verify(String studentId, String rawPassword) {
-        User user = userRepository.findByLoginId(studentId)
+        User user = userRepository.findByStudentId(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
