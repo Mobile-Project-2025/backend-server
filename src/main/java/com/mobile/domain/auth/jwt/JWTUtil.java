@@ -17,12 +17,14 @@ public class JWTUtil {
 
     private final SecretKey secretKey;
 
+    //AccessToken 유효기간(15분)
     private static final long ACCESS_TTL_MS = 15 * 60 * 1000;
 
     public JWTUtil(@Value("${jwt.secret}") String secret) {
         this.secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
     }
 
+    //AccessToken 생성
     public String createAccessToken(Long userId, String role) {
         Date now = new Date();
         return Jwts.builder()
