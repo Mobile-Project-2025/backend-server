@@ -36,4 +36,10 @@ public class AuthController {
         String access = jwtService.generateAccessToken(user);
         return ResponseEntity.ok(new SignInRes(access, user.getNickname(), user.getRole()));
     }
+
+    //로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        return ResponseEntity.ok("로그아웃 성공");
+    }
 }
