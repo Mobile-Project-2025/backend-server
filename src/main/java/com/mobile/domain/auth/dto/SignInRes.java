@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignInRes {
-    String token;
+    String accessToken;
     String studentId;
     RoleType role;
 }
