@@ -2,10 +2,12 @@ package com.mobile.domain.auth.controller;
 
 import com.mobile.domain.auth.dto.SignInReq;
 import com.mobile.domain.auth.dto.SignInRes;
+import com.mobile.domain.auth.dto.SignUpReq;
 import com.mobile.domain.auth.entity.User;
 import com.mobile.domain.auth.jwt.JWTService;
 import com.mobile.domain.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +21,13 @@ public class AuthController {
 
     private final UserService userService;
     private final JWTService jwtService;
+
+    //회원가입
+    @PostMapping("/register")
+    public ResponseEntity<Void> register(@RequestBody SignUpReq signInReq) {
+        userService.register(signInReq);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 
     //로그인
     @PostMapping("/login")
