@@ -1,7 +1,9 @@
-package com.mobile.server.domain.auth.entity;
+package com.mobile.server.domain.missionParticipation.domain;
 
+import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.common.BaseCreatedEntity;
-import com.mobile.server.domain.file.domain.File;
+import com.mobile.server.domain.mission.domain.Mission;
+import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,45 +13,32 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
-@Table(name = "users")
-public class User extends BaseCreatedEntity {
+public class MissionParticipation extends BaseCreatedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String nickname;
-
-    @Column(nullable = false, unique = true, length = 8)
-    private String studentId;
-
+    @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
-    private String password;
+    private MissionParticipationStatus participationStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private RoleType role;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mission_id")
+    private Mission mission;
 
-    @Column(nullable = false)
-    private Long cumulativePoint = 0L;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "file_id")
-    private File profileImage;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }
