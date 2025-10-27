@@ -1,6 +1,9 @@
-package com.mobile.server.domain.file;
+package com.mobile.server.domain.file.domain;
 
 import com.mobile.server.domain.common.BaseCreatedEntity;
+import com.mobile.server.domain.file.dto.FileDetailDto;
+import com.mobile.server.domain.mission.domain.Mission;
+import com.mobile.server.domain.missionParticipation.domain.MissionParticipation;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,16 +19,12 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Check;
 
 @Entity
-@Check(
-        constraints = """
-                (
-                  (CASE WHEN resource_id     IS NOT NULL THEN 1 ELSE 0 END) +
-                  (CASE WHEN announcement_id IS NOT NULL THEN 1 ELSE 0 END) +
-                  (CASE WHEN assignment_id   IS NOT NULL THEN 1 ELSE 0 END) +
-                  (CASE WHEN submission_id   IS NOT NULL THEN 1 ELSE 0 END)
-                ) <= 1
-                """
-)
+@Check(constraints = """
+        (
+          (CASE WHEN mission_id     IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN participation_id IS NOT NULL THEN 1 ELSE 0 END) +
+        ) <= 1
+        """)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -51,87 +50,46 @@ public class File extends BaseCreatedEntity {
     private Boolean isDeleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resource_id")
-    private Resource resource;
+    @JoinColumn(name = "mission_id")
+    private Mission mission;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "announcement_id")
-    private Announcement announcement;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignment_id")
-    private Assignment assignment;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "submission_id")
-    private Submission submission;
+    @JoinColumn(name = "participation_id")
+    private MissionParticipation participation;
 
     public void delete() {
         isDeleted = true;
     }
 
-    public void deleteAnnouncementFile() {
+    public void deleteMissionFile() {
         isDeleted = true;
-        announcement = null;
+        mission = null;
     }
 
-    public void deleteAssignmentFile() {
+    public void deleteParticipationFile() {
         isDeleted = true;
-        assignment = null;
-    }
-
-    public void deleteSubmissionFile() {
-        isDeleted = true;
-        submission = null;
-    }
-
-    public void deleteResourceFile() {
-        isDeleted = true;
-        resource = null;
+        participation = null;
     }
 
 
-    public static File ofResource(Resource resource,
-                                  FileDetailDto fileDetail) {
+    public static File ofMission(Mission mission, FileDetailDto fileDetail) {
         File f = base(fileDetail);
-        f.resource = resource;
+        f.mission = mission;
         return f;
     }
 
-    public static File ofAnnouncement(Announcement announcement,
-                                      FileDetailDto fileDetail) {
+    public static File ofParticipation(MissionParticipation participation, FileDetailDto fileDetail) {
         File f = base(fileDetail);
-        f.announcement = announcement;
+        f.participation = participation;
         return f;
     }
 
-    public static File ofAssignment(Assignment assignment,
-                                    FileDetailDto fileDetail) {
-        File f = base(fileDetail);
-        f.assignment = assignment;
-        return f;
-    }
 
-    public static File ofSubmission(Submission submission,
-                                    FileDetailDto fileDetail) {
-        File f = base(fileDetail);
-        f.submission = submission;
-        return f;
-    }
-
-    /**
-     * UserProfile 프로필 이미지용 파일 생성
-     */
-    public static File ofProfileImage(FileDetailDto fileDetail) {
-        return base(fileDetail);
-    }
-
-    // 공통 생성 로직
     private static File base(FileDetailDto fileDetail) {
         File f = new File();
         f.fileName = fileDetail.getOriginalFileName();
         f.fileKey = fileDetail.getKey();
-        f.mimeType = fileDetail.getContentType();
+        f.fileType = fileDetail.getContentType();
         f.fileSize = fileDetail.getFileSize();
         return f;
     }
