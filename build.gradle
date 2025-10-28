@@ -51,6 +51,8 @@ dependencies {
 
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1'
 
+    testImplementation 'com.h2database:h2'
+
 }
 tasks.named('test') {
     useJUnitPlatform()
