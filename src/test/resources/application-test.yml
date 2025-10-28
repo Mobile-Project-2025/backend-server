@@ -1,17 +1,39 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MYSQL;NON_KEYWORDS=FILE
     username: sa
     password:
+
+  h2:
+    console:
+      enabled: true
+
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
+    show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        check_nullability: false
+        hbm2ddl.create_namespaces: true
+    defer-datasource-initialization: true
+
   jackson:
     default-property-inclusion: non_null
 
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test-key
+        secret-key: test-secret
+      s3:
+        endpoint: http://localhost:4567
+        bucket: test-bucket
+        path-style-access-enabled: true
+
   jwt:
-    secret: test
+    secret: test-secret-key

@@ -45,10 +45,10 @@ public class User extends BaseCreatedEntity {
     private RoleType role;
 
     @Column(nullable = false)
-    private Long cumulativePoint = 0L;
+    private Long cumulativePoint;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "file_id")
+    @JoinColumn(name = "profile_image_id")
     private File profileImage;
 
 
