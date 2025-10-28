@@ -11,8 +11,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-@SpringBootTest(classes = MockS3Config.class)
-@ActiveProfiles("local")
+@SpringBootTest
+@ActiveProfiles("test")
 public class S3Test {
 
     @Autowired
