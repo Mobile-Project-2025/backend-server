@@ -8,22 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    #  LocalStack 서비스 추가 (S3만 활성화)
-    services:
-      localstack:
-        image: localstack/localstack:latest
-        ports:
-          - 4567:4566    # ⚠️ 왼쪽은 Spring이 바라보는 4567, 오른쪽은 LocalStack 내부 4566
-        env:
-          SERVICES: s3
-          DEBUG: 1
-        options: >-
-          --health-cmd "curl -s http://localhost:4566/_localstack/health | grep 'running' || exit 1"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-
     steps:
       - name: 레포지토리 파일 가져오기
         uses: actions/checkout@v4
@@ -37,19 +21,7 @@ jobs:
       - name: gradle 파일 실행 권한 설정
         run: chmod +x gradlew
 
-      #  LocalStack이 완전히 뜰 때까지 대기
-      - name: LocalStack 준비 대기
-        run: |
-          echo "⏳ LocalStack 초기화 대기 중..."
-          until curl -s http://localhost:4566/_localstack/health | grep 'running'; do
-            sleep 3
-          done
-          echo " LocalStack 실행 완료!"
-
       - name: Build and test with Gradle
         run: ./gradlew clean build
         env:
           SPRING_PROFILES_ACTIVE: test
-          AWS_ACCESS_KEY_ID: test-key
-          AWS_SECRET_ACCESS_KEY: test-secret
-          AWS_REGION: ap-northeast-2
