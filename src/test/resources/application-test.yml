@@ -20,6 +20,8 @@ spring:
     console:
       enabled: true
 
+
+
   cloud:
     aws:
       region:
