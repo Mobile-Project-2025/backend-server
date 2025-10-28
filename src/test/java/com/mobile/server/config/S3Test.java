@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @SpringBootTest()
-@ActiveProfiles("test")
+@ActiveProfiles("local")
 public class S3Test {
 
     @Autowired
