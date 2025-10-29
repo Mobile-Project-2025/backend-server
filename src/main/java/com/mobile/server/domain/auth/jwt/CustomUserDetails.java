@@ -17,7 +17,7 @@ public class CustomUserDetails implements UserDetails {
 
     public CustomUserDetails(User user) {
         this.userId = user.getId();
-        this.username = user.getNickname();
+        this.username = user.getStudentId();
         this.password = user.getPassword();
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()));
     }
