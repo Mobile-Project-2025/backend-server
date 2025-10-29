@@ -21,8 +21,8 @@ import org.hibernate.annotations.Check;
 @Entity
 @Check(constraints = """
         (
-          (CASE WHEN mission_id     IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN participation_id IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN mission_id IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN mission_participation_id IS NOT NULL THEN 1 ELSE 0 END)
         ) <= 1
         """)
 @Getter
@@ -54,7 +54,7 @@ public class File extends BaseCreatedEntity {
     private Mission mission;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "participation_id")
+    @JoinColumn(name = "mission_participation_id")
     private MissionParticipation participation;
 
     public void delete() {

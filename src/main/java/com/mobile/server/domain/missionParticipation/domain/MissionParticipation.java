@@ -34,11 +34,11 @@ public class MissionParticipation extends BaseCreatedEntity {
     private MissionParticipationStatus participationStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mission_id")
+    @JoinColumn
     private Mission mission;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn
     private User user;
 
 }
