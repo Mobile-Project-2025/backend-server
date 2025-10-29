@@ -22,6 +22,13 @@ public class CustomUserDetails implements UserDetails {
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()));
     }
 
+    public CustomUserDetails(Long userId, String studentId, String password, Collection<? extends GrantedAuthority> authorities) {
+        this.userId = userId;
+        this.username = studentId;
+        this.password = password;
+        this.authorities = authorities;
+    }
+
     public Long getUserId() {
         return userId;
     }

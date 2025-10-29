@@ -8,11 +8,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -42,15 +46,15 @@ public class JWTFilter extends OncePerRequestFilter {
             }
 
             Long userId = jwtService.getUserIdFromToken(token);
+            String studentId = jwtService.getStudentIdFromToken(token);
             String role = jwtService.getRoleFromToken(token);
 
-            UserDto principal = new UserDto();
-            principal.setId(userId);
-            principal.setRole(RoleType.valueOf(role));
+            Collection<? extends GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+
+            UserDetails principal = new CustomUserDetails(userId, studentId, "", authorities);
 
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(principal, null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+                    new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
