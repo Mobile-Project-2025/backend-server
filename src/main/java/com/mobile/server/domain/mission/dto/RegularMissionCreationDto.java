@@ -1,0 +1,33 @@
+package com.mobile.server.domain.mission.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
+
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Schema(description = "상시 미션 생성 요청 DTO")
+public class RegularMissionCreationDto {
+
+    @Schema(description = "미션 제목(필수)")
+    @NotBlank
+    private String title;
+
+    @Schema(description = "미션 포인트(필수), 양수")
+    @NotNull
+    @Positive
+    private Long point;
+
+    @Schema(description = "미션 내용(필수)")
+    @NotBlank
+    private String content;
+    @Schema(description = "미션 이미지")
+    private MultipartFile missionImage;
+
+}
