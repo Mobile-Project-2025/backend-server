@@ -1,17 +1,38 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
   jackson:
     default-property-inclusion: non_null
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        ddl-auto: create
+        format_sql: true
+    defer-datasource-initialization: true
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+
+
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: test-key
+        secret-key: test-secret
+      s3:
+        endpoint: http://localhost:4567
+        bucket: test-bucket
+        path-style-access-enabled: true
 
   jwt:
-    secret: test
+    secret: test-secret-key

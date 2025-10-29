@@ -10,7 +10,7 @@ public class AppController {
 
     @GetMapping(value = "/")
     @Operation(summary = "Test API", description = "Returns a simple Hello World message.")
-    public ResponseEntity<String> home(){
+    public ResponseEntity<String> home() {
         return ResponseEntity.ok("Hello World");
     }
 }

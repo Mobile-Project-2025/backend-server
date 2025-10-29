@@ -1,4 +1,3 @@
-
 services:
   app:
     image: whitedeepdive/mobile-environment-app:latest
@@ -10,12 +9,16 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
 
 
     restart: always
     depends_on:
       db:
-          condition: service_healthy
+        condition: service_healthy
     ports:
       - 8080:8080
 
@@ -41,5 +44,18 @@ services:
       retries: 5
       start_period: 30s
 
+  localstack:
+    image: localstack/localstack:latest
+    container_name: my-localstack-reple
+    ports:
+      - "4567:4566"
+    environment:
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=ap-northeast-2
+    volumes:
+      - localstack-data:/var/lib/localstack
+    restart: always
+
 volumes:
-    mysql_data:
+  mysql_data:
+  localstack-data:
