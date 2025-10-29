@@ -28,6 +28,7 @@ public class UserService {
                 .password(passwordEncoder.encode(signUpReq.getPassword()))
                 .nickname(signUpReq.getNickname())
                 .role(RoleType.STUDENT)
+                .cumulativePoint(0L)
                 .build();
 
         userRepository.save(user);
