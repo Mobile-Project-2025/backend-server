@@ -9,7 +9,12 @@ public enum BusinessErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
     FORMAT_MISMATCH(HttpStatus.BAD_REQUEST, "타입 오류 혹은 JSON 형식 에러가 발생했습니다. "),
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "유효하지 않은 파라미터가 포함되어 있습니다."),
-    TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "타입 오류 발생가 발생했습니다. ");
+    TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "타입 오류 발생가 발생했습니다. "),
+    FILE_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "현재 파일과 관련하여 서버에 문제가 있습니다."),
+    FILE_EMPTY(HttpStatus.BAD_REQUEST, "업로드할 파일이 없습니다."),
+    FILENAME_MISSING(HttpStatus.BAD_REQUEST, "파일명이 존재하지 않습니다."),
+    FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "파일의 허용 용량을 초과했습니다"),
+    FILE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다");
 
 
     private final HttpStatus status;

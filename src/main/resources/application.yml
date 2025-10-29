@@ -12,4 +12,7 @@ spring:
         secret-key: ${AWS_SECRET_ACCESS_KEY}
       region:
         static: ap-northeast-2
+  servlet:
+    multipart:
+      max-file-size: 20MB #단일 파일의 최대 크기
 
