@@ -14,7 +14,7 @@ public class JWTService {
 
     //AccessToken 발급
     public String generateAccessToken(User user) {
-        return jwtUtil.createAccessToken(user.getId(), user.getRole().name());
+        return jwtUtil.createAccessToken(user.getId(), user.getStudentId(), user.getRole().name());
     }
 
     //토큰 유효성 검사
@@ -26,6 +26,9 @@ public class JWTService {
     public Long getUserIdFromToken(String token) {
         return jwtUtil.parseUserId(token);
     }
+
+    //StudentId 추출
+    public String getStudentIdFromToken(String token) { return jwtUtil.parseStudentId(token); }
 
     //Role 추출
     public String getRoleFromToken(String token) {

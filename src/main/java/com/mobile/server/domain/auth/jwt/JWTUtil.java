@@ -25,10 +25,11 @@ public class JWTUtil {
     }
 
     //AccessToken 생성
-    public String createAccessToken(Long userId, String role) {
+    public String createAccessToken(Long userId, String studentId, String role) {
         Date now = new Date();
         return Jwts.builder()
                 .claim("userId",userId)
+                .claim("studentId",studentId)
                 .claim("role",role)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + ACCESS_TTL_MS))
@@ -40,6 +41,12 @@ public class JWTUtil {
     public Long parseUserId(String token) {
         return Jwts.parser().verifyWith(secretKey).build()
                 .parseSignedClaims(token).getPayload().get("userId", Number.class).longValue();
+    }
+
+    //studentId 파싱
+    public String parseStudentId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build()
+                .parseSignedClaims(token).getPayload().get("studentId", String.class);
     }
 
     //role 파싱
