@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mobile.server.config.FakeS3Uploader;
 import com.mobile.server.domain.auth.entity.RoleType;
 import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
@@ -46,6 +47,9 @@ class MissionManagementControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private FakeS3Uploader s3Uploader;
+
     private User admin;
     private User user1;
 
@@ -68,6 +72,8 @@ class MissionManagementControllerTest {
                 .password("password")
                 .cumulativePoint(0L)
                 .build());
+
+        s3Uploader.clearStorage();
 
     }
 
