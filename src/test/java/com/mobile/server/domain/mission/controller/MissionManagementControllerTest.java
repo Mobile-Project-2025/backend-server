@@ -2,6 +2,7 @@ package com.mobile.server.domain.mission.controller;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,7 +15,9 @@ import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.constant.MissionCategory;
 import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.repository.MissionRepository;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
+import java.time.LocalDate;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +55,9 @@ class MissionManagementControllerTest {
     @Autowired
     private FakeS3Uploader s3Uploader;
 
+    @Autowired
+    private MissionRepository missionRepository;
+
     private User admin;
     private User user1;
 
@@ -77,6 +84,95 @@ class MissionManagementControllerTest {
         s3Uploader.clearStorage();
 
     }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 돌발 미션 생성에 성공한다.")
+    void createEventMission_success() throws Exception {
+        // given
+        MockMultipartFile image = new MockMultipartFile(
+                "missionImage", "image.png",
+                "image/png", "fake image".getBytes()
+        );
+        // when & then
+        mockMvc.perform(multipart("/api/admin/missions/event")
+                        .file(image)
+                        .param("title", "대중교통 이용 챌린지")
+                        .param("point", "10")
+                        .param("content", "지하철 이용 후 인증샷 업로드")
+                        .param("category", MissionCategory.PUBLIC_TRANSPORTATION.name())
+                        .param("startDate", LocalDate.now().toString())
+                        .param("deadLine", LocalDate.now().toString())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isCreated());
+
+        Assertions.assertThat(missionRepository.findAll().size()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 돌발 미션 생성에 성공한다. - 파일이 없는 경우")
+    void createEventMission_success_notFile() throws Exception {
+        // when & then
+        mockMvc.perform(multipart("/api/admin/missions/event")
+                        .param("title", "대중교통 이용 챌린지")
+                        .param("point", "10")
+                        .param("content", "지하철 이용 후 인증샷 업로드")
+                        .param("category", MissionCategory.PUBLIC_TRANSPORTATION.name())
+                        .param("startDate", LocalDate.now().toString())
+                        .param("deadLine", LocalDate.now().toString())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isCreated());
+
+        Assertions.assertThat(missionRepository.findAll().size()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("실패: 사용자가 돌발 미션 생성을 시도한다.")
+    void createEventMission_fail_isForbidden() throws Exception {
+        // given
+        MockMultipartFile image = new MockMultipartFile(
+                "missionImage", "image.png",
+                "image/png", "fake image".getBytes()
+        );
+        // when & then
+        mockMvc.perform(multipart("/api/admin/missions/event")
+                        .file(image)
+                        .param("title", "대중교통 이용 챌린지")
+                        .param("point", "10")
+                        .param("content", "지하철 이용 후 인증샷 업로드")
+                        .param("category", MissionCategory.PUBLIC_TRANSPORTATION.name())
+                        .param("startDate", LocalDate.now().toString())
+                        .param("deadLine", LocalDate.now().toString())
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    @DisplayName("실패: 관리자 계정이 돌발 미션 생성에 성공한다. - 시작날짜 > 종료날짜")
+    void createEventMission_fail_inValidDate() throws Exception {
+        // given
+        MockMultipartFile image = new MockMultipartFile(
+                "missionImage", "image.png",
+                "image/png", "fake image".getBytes()
+        );
+        // when & then
+        mockMvc.perform(multipart("/api/admin/missions/event")
+                        .file(image)
+                        .param("title", "대중교통 이용 챌린지")
+                        .param("point", "10")
+                        .param("content", "지하철 이용 후 인증샷 업로드")
+                        .param("category", MissionCategory.PUBLIC_TRANSPORTATION.name())
+                        .param("startDate", LocalDate.now().toString() + 1)
+                        .param("deadLine", LocalDate.now().toString())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+
+    }
+
 
     @Test
     @DisplayName("성공: 관리자 계정이 상시 미션 생성에 성공한다.")
