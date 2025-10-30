@@ -24,7 +24,7 @@ public class RegularMissionCreationDto {
     @Positive
     private Long point;
 
-    @Schema(description = "미션 내용(필수)")
+    @Schema(description = "미션 설명(필수)")
     @NotBlank
     private String content;
     @Schema(description = "미션 이미지")

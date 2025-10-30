@@ -14,7 +14,10 @@ public enum BusinessErrorCode {
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "업로드할 파일이 없습니다."),
     FILENAME_MISSING(HttpStatus.BAD_REQUEST, "파일명이 존재하지 않습니다."),
     FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "파일의 허용 용량을 초과했습니다"),
-    FILE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다");
+    FILE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
+    URL_FORBIDDEN(HttpStatus.FORBIDDEN, "사용자는 해당 기능을 사용할 수 없습니다."),
+    INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "요청하신 카테고리는 존재하지 않습니다");
 
 
     private final HttpStatus status;
