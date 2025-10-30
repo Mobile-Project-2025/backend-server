@@ -28,6 +28,7 @@ public class MissionManagementService {
     private final S3Uploader s3Uploader;
 
 
+    @Transactional
     public void createRegularMission(RegularMissionCreationDto mission, Long userId) {
         isAdmin(userId);
         String iconImageUrl = getCategoryIconImageUrl(mission.getCategory());

@@ -1,6 +1,7 @@
 spring:
   jackson:
     default-property-inclusion: non_null
+
   jpa:
     show-sql: true
     properties:
@@ -16,11 +17,14 @@ spring:
     username: sa
     password:
     database-platform: org.hibernate.dialect.H2Dialect
+
   h2:
     console:
       enabled: true
 
-
+  sql:
+    init:
+      mode: never
 
   cloud:
     aws:
