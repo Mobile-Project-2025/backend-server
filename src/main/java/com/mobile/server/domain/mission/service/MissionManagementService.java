@@ -3,7 +3,6 @@ package com.mobile.server.domain.mission.service;
 import com.mobile.server.domain.auth.entity.RoleType;
 import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.auth.repository.UserRepository;
-import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.e.MissionType;
@@ -16,7 +15,6 @@ import com.mobile.server.util.file.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(readOnly = true)
@@ -35,15 +33,6 @@ public class MissionManagementService {
         String bannerImageUrl = getRegularBannerImageUrl();
         RegularMission newMission = createNewMission(mission, iconImageUrl, bannerImageUrl);
         regularMissionRepository.save(newMission);
-        saveFile(mission.getMissionImage());
-    }
-
-    private void saveFile(MultipartFile file) {
-        if (file != null) {
-            File newFile = File.ofFile(s3Uploader.makeMetaData(file));
-            fileRepository.save(newFile);
-            s3Uploader.uploadFile(newFile.getFileKey(), file);
-        }
     }
 
 

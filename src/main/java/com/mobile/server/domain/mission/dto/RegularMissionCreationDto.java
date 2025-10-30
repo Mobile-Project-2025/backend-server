@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @AllArgsConstructor
@@ -29,8 +28,6 @@ public class RegularMissionCreationDto {
     @Schema(description = "미션 설명(필수)")
     @NotBlank
     private String content;
-    @Schema(description = "미션 이미지")
-    private MultipartFile missionImage;
 
     @Schema(description = "미션 카테고리")
     @NotBlank
