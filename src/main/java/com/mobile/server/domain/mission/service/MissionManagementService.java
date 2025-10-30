@@ -54,8 +54,7 @@ public class MissionManagementService {
     }
 
     private String getRegularBannerImageUrl() {
-        return FileResourceMap.BANNER_MAP.get(FileResourceMap.BANNER_MAP.get(
-                MissionType.SCHEDULED.name()));
+        return FileResourceMap.BANNER_MAP.get(MissionType.SCHEDULED.name());
     }
 
     private String getCategoryIconImageUrl(String category) {

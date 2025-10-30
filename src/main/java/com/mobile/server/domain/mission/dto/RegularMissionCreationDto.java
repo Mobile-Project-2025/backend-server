@@ -7,12 +7,14 @@ import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "상시 미션 생성 요청 DTO")
+@Setter
 public class RegularMissionCreationDto {
 
     @Schema(description = "미션 제목(필수)")

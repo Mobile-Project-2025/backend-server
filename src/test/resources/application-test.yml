@@ -22,9 +22,7 @@ spring:
     console:
       enabled: true
 
-  sql:
-    init:
-      mode: never
+
 
   cloud:
     aws:
