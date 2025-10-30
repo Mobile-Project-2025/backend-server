@@ -27,11 +27,7 @@ public class MissionManagementService {
     private final RegularMissionRepository regularMissionRepository;
     private final S3Uploader s3Uploader;
 
-    /*
-    1. 관리자 검증
-    2. 상시 미션 목록 엔티티 생성 및 저장 -> 카테고리에 해당하는 배너와 아이콘 찾기
-    3. 파일 저장
-     */
+
     public void createRegularMission(RegularMissionCreationDto mission, Long userId) {
         isAdmin(userId);
         String iconImageUrl = getCategoryIconImageUrl(mission.getCategory());
