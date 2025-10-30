@@ -6,6 +6,7 @@ import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.e.MissionType;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
 import com.mobile.server.domain.regularMission.domain.RegularMission;
 import com.mobile.server.util.exception.BusinessErrorCode;
@@ -56,7 +57,8 @@ public class MissionManagementService {
     }
 
     private String getRegularBannerImageUrl() {
-        return FileResourceMap.BANNER_MAP.get("scheduled");
+        return FileResourceMap.BANNER_MAP.get(FileResourceMap.BANNER_MAP.get(
+                MissionType.SCHEDULED.name()));
     }
 
     private String getCategoryIconImageUrl(String category) {

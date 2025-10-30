@@ -1,5 +1,6 @@
 package com.mobile.server.util.file;
 
+import com.mobile.server.domain.mission.e.MissionType;
 import java.util.Map;
 
 public final class FileResourceMap {
@@ -15,9 +16,9 @@ public final class FileResourceMap {
     );
 
     public static final Map<String, String> BANNER_MAP = Map.of(
-            "scheduled", //상시 미션
+            MissionType.SCHEDULED.name(), //상시 미션
             "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png"
-            , "event", //돌발 미션
+            , MissionType.EVENT.name(), //돌발 미션
             "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/537500d1-4fe2-4f06-9cf3-38e46ed87d64.png"
     );
 
