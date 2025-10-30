@@ -30,4 +30,8 @@ public class RegularMissionCreationDto {
     @Schema(description = "미션 이미지")
     private MultipartFile missionImage;
 
+    @Schema(description = "미션 카테고리")
+    @NotBlank
+    private String category;
+
 }
