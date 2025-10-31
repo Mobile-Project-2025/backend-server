@@ -1,7 +1,12 @@
 package com.mobile.server.domain.mission.controller;
 
+import static com.mobile.server.domain.mission.e.MissionStatus.CLOSED;
+import static com.mobile.server.domain.mission.e.MissionType.EVENT;
+import static com.mobile.server.domain.missionParticipation.domain.MissionParticipation.builder;
+import static com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus.PENDING;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -14,8 +19,10 @@ import com.mobile.server.domain.auth.jwt.CustomUserDetails;
 import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.constant.MissionCategory;
+import com.mobile.server.domain.mission.domain.Mission;
 import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.repository.MissionRepository;
+import com.mobile.server.domain.missionParticipation.repository.MissionParticipationRepository;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
 import java.time.LocalDate;
 import org.assertj.core.api.Assertions;
@@ -57,6 +64,9 @@ class MissionManagementControllerTest {
 
     @Autowired
     private MissionRepository missionRepository;
+
+    @Autowired
+    private MissionParticipationRepository missionParticipationRepository;
 
     private User admin;
     private User user1;
@@ -258,6 +268,70 @@ class MissionManagementControllerTest {
                         .with(user(new CustomUserDetails(admin)))
                         .with(csrf()))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 마감 미션 조회에 성공한다.")
+    void getDeadlineMission_success() throws Exception {
+        // given
+        Mission closedMission = missionRepository.save(
+                Mission.builder()
+                        .title("분리수거 미션")
+                        .content("캔/플라스틱 분리배출 인증샷 올리기")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().minusDays(1))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(CLOSED)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        missionParticipationRepository.save(
+                builder()
+                        .mission(closedMission)
+                        .user(user1)
+                        .participationStatus(
+                                PENDING)
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/deadLine")
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).contains("분리수거 미션");
+                    Assertions.assertThat(response).contains("1");
+                });
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 마감 미션 조회를 시도하면 403 Forbidden 반환")
+    void getDeadlineMission_fail_forbidden() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/deadLine")
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 마감 미션이 없을 경우 빈 리스트 반환")
+    void getDeadlineMission_success_emptyList() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/deadLine")
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).isEqualTo("[]");
+                });
     }
 
 
