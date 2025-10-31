@@ -1,7 +1,7 @@
 package com.mobile.server.domain.mission.domain;
 
 import com.mobile.server.domain.common.BaseCreatedEntity;
-import com.mobile.server.domain.mission.dto.dto.DeadlineMissionResponseDto;
+import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import jakarta.persistence.Column;
@@ -62,8 +62,8 @@ public class Mission extends BaseCreatedEntity {
     private String category;
 
 
-    public DeadlineMissionResponseDto makeDeadLineMission() {
-        return DeadlineMissionResponseDto.builder().missionId(id)
+    public MissionResponseDto makeMissionResponseDto() {
+        return MissionResponseDto.builder().missionId(id)
                 .title(title).missionPoint(missionPoint)
                 .category(category).iconImageUrl(iconUrl)
                 .bannerImageUrl(bannerUrl).build();

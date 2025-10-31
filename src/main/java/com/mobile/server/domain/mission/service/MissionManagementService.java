@@ -6,8 +6,8 @@ import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.domain.Mission;
-import com.mobile.server.domain.mission.dto.dto.DeadlineMissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
+import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
@@ -62,11 +62,25 @@ public class MissionManagementService {
         saveFile(newMission, mission.getMissionImage());
     }
 
-    public List<DeadlineMissionResponseDto> getDeadlineMission(Long userId) {
+    public List<MissionResponseDto> getDeadlineMission(Long userId) {
         isAdmin(userId);
         List<Mission> deadlineMission = makeDeadLineMission();
         Set<Mission> uniqueDeadLineMission = new HashSet<>(deadlineMission);
-        return makeUniqueDeadLineMissionResponseList(uniqueDeadLineMission);
+        return makeUniqueMissionResponseList(uniqueDeadLineMission);
+    }
+
+    public List<MissionResponseDto> getTerminationMission(Long userId) {
+        isAdmin(userId);
+        List<Mission> terminationMission = makeTerminationMission();
+        Set<Mission> uniqueTerminationMission = new HashSet<>(terminationMission);
+        return makeUniqueMissionResponseList(uniqueTerminationMission);
+    }
+
+    private List<Mission> makeTerminationMission() {
+        return missionRepository.findAllByMissionStatusAndMissionParticipationStatusNot(
+                MissionStatus.CLOSED,
+                MissionParticipationStatus.PENDING
+        );
     }
 
     private List<Mission> makeDeadLineMission() {
@@ -76,9 +90,9 @@ public class MissionManagementService {
     }
 
     @NotNull
-    private List<DeadlineMissionResponseDto> makeUniqueDeadLineMissionResponseList(Set<Mission> uniqueDeadLineMission) {
-        return uniqueDeadLineMission.stream().map(m -> {
-            DeadlineMissionResponseDto result = m.makeDeadLineMission();
+    private List<MissionResponseDto> makeUniqueMissionResponseList(Set<Mission> uniqueMission) {
+        return uniqueMission.stream().map(m -> {
+            MissionResponseDto result = m.makeMissionResponseDto();
             if (m.getMissionType().equals(MissionType.EVENT)) {
                 int count = missionParticipationRepository.findAllByMission_Id(m.getId()).size();
                 result.setParticipationCount(count);

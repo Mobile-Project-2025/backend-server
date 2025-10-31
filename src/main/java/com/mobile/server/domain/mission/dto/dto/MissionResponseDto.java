@@ -13,7 +13,7 @@ import lombok.Setter;
 @Setter
 @Builder
 @Schema(description = "마감 미션 응답 DTO")
-public class DeadlineMissionResponseDto {
+public class MissionResponseDto {
 
     @Schema(description = "미션 id")
     @NotNull

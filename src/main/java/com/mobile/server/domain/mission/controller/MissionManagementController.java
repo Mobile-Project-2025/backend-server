@@ -1,8 +1,8 @@
 package com.mobile.server.domain.mission.controller;
 
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
-import com.mobile.server.domain.mission.dto.dto.DeadlineMissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
+import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.service.MissionManagementService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,14 +87,33 @@ public class MissionManagementController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
                             content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = DeadlineMissionResponseDto.class))
+                                    schema = @Schema(implementation = MissionResponseDto.class))
                     )
             }
     )
     @GetMapping(path = "/deadLine")
-    public ResponseEntity<List<DeadlineMissionResponseDto>> createEventMission(
+    public ResponseEntity<List<MissionResponseDto>> getDeadlineMission(
             @AuthenticationPrincipal CustomUserDetails userInformation) {
-        List<DeadlineMissionResponseDto> result = managementService.getDeadlineMission(
+        List<MissionResponseDto> result = managementService.getDeadlineMission(
+                userInformation.getUserId());
+        return ResponseEntity.ok(result);
+    }
+
+
+    @Operation(
+            summary = "종료 미션 조회",
+            description = "관리자가 완전히 마감된 미션(마감 && 승인 대기x, 승인 혹은 반려 중 하나) 을 모두 조회한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MissionResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping(path = "/termination")
+    public ResponseEntity<List<MissionResponseDto>> getTerminationMission(
+            @AuthenticationPrincipal CustomUserDetails userInformation) {
+        List<MissionResponseDto> result = managementService.getTerminationMission(
                 userInformation.getUserId());
         return ResponseEntity.ok(result);
     }
