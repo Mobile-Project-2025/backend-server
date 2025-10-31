@@ -47,11 +47,14 @@ public class Mission extends BaseCreatedEntity {
     @Column(nullable = false)
     private String iconUrl;
 
+    @Column(nullable = false)
     private String bannerUrl;
 
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
     private MissionStatus status;
 
+    @Column(nullable = false)
+    private String category;
 
 }
