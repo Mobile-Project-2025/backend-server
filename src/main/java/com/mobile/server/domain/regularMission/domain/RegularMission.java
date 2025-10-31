@@ -35,4 +35,7 @@ public class RegularMission extends BaseCreatedEntity {
     @Column(nullable = false)
     private String bannerUrl;
 
+    @Column(nullable = false)
+    private String category;
+
 }
