@@ -86,7 +86,9 @@ public class MissionManagementService {
     private RegularMission createNewRegularMission(RegularMissionCreationDto mission, String iconImageUrl,
                                                    String bannerImageUrl) {
         return RegularMission.builder().title(mission.getTitle()).missionPoint(mission.getPoint())
-                .content(mission.getContent()).iconUrl(iconImageUrl).bannerUrl(bannerImageUrl).build();
+                .content(mission.getContent()).iconUrl(iconImageUrl).bannerUrl(bannerImageUrl)
+                .category(mission.getCategory())
+                .build();
     }
 
     private String getRegularBannerImageUrl() {
