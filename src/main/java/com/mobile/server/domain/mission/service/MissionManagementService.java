@@ -72,7 +72,7 @@ public class MissionManagementService {
                         mission.getStartDate().isEqual(LocalDate.now())
                                 ? MissionStatus.OPEN
                                 : MissionStatus.CLOSED
-                )
+                ).category(mission.getCategory())
                 .build();
     }
 
