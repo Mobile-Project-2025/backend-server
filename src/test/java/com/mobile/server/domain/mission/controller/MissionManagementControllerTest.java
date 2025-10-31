@@ -3,6 +3,7 @@ package com.mobile.server.domain.mission.controller;
 import static com.mobile.server.domain.mission.e.MissionStatus.CLOSED;
 import static com.mobile.server.domain.mission.e.MissionType.EVENT;
 import static com.mobile.server.domain.missionParticipation.domain.MissionParticipation.builder;
+import static com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus.APPROVED;
 import static com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus.PENDING;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -325,6 +326,68 @@ class MissionManagementControllerTest {
     void getDeadlineMission_success_emptyList() throws Exception {
         // when & then
         mockMvc.perform(get("/api/admin/missions/deadLine")
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).isEqualTo("[]");
+                });
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 종료 미션 조회에 성공한다.")
+    void getTerminationMission_success() throws Exception {
+        // given
+        Mission closedMission = missionRepository.save(
+                Mission.builder()
+                        .title("에코백 챌린지")
+                        .content("장 볼 때 에코백 인증샷 올리기")
+                        .missionPoint(15L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(5))
+                        .deadLine(LocalDate.now().minusDays(1))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(CLOSED)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        missionParticipationRepository.save(
+                builder()
+                        .mission(closedMission)
+                        .user(user1)
+                        .participationStatus(
+                                APPROVED)
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/termination")
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).contains("에코백 챌린지");
+                    Assertions.assertThat(response).contains("1");
+                });
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 종료 미션 조회를 시도하면 403 Forbidden 반환")
+    void getTerminationMission_fail_forbidden() throws Exception {
+        mockMvc.perform(get("/api/admin/missions/termination")
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 종료 미션이 없을 경우 빈 리스트 반환")
+    void getTerminationMission_success_emptyList() throws Exception {
+        mockMvc.perform(get("/api/admin/missions/termination")
                         .with(user(new CustomUserDetails(admin)))
                         .with(csrf()))
                 .andExpect(status().isOk())
