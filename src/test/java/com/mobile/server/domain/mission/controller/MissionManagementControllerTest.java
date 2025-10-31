@@ -14,7 +14,7 @@ import com.mobile.server.domain.auth.jwt.CustomUserDetails;
 import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.constant.MissionCategory;
-import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.repository.MissionRepository;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
 import java.time.LocalDate;

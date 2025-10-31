@@ -1,8 +1,9 @@
 package com.mobile.server.domain.mission.controller;
 
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
-import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.dto.DeadlineMissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
+import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.service.MissionManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,11 +11,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -76,6 +79,24 @@ public class MissionManagementController {
                                                    @ModelAttribute @Valid EventMissionCreationDto mission) {
         managementService.createEventMission(mission, userInformation.getUserId());
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @Operation(
+            summary = "마감 미션 조회",
+            description = "관리자가 마감되었지만 아직 승인 대기 중인 상태가 하나라도 남아있는 미션을 모두 조회한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = DeadlineMissionResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping(path = "/deadLine")
+    public ResponseEntity<List<DeadlineMissionResponseDto>> createEventMission(
+            @AuthenticationPrincipal CustomUserDetails userInformation) {
+        List<DeadlineMissionResponseDto> result = managementService.getDeadlineMission(
+                userInformation.getUserId());
+        return ResponseEntity.ok(result);
     }
 
 

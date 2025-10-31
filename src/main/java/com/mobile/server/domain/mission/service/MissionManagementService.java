@@ -6,11 +6,14 @@ import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.domain.Mission;
-import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.dto.DeadlineMissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
+import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import com.mobile.server.domain.mission.repository.MissionRepository;
+import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
+import com.mobile.server.domain.missionParticipation.repository.MissionParticipationRepository;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
 import com.mobile.server.domain.regularMission.domain.RegularMission;
 import com.mobile.server.util.exception.BusinessErrorCode;
@@ -18,7 +21,11 @@ import com.mobile.server.util.exception.BusinessException;
 import com.mobile.server.util.file.FileResourceMap;
 import com.mobile.server.util.file.S3Uploader;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +39,7 @@ public class MissionManagementService {
     private final RegularMissionRepository regularMissionRepository;
     private final S3Uploader s3Uploader;
     private final MissionRepository missionRepository;
+    private final MissionParticipationRepository missionParticipationRepository;
 
 
     @Transactional
@@ -52,6 +60,31 @@ public class MissionManagementService {
         Mission newMission = createNewEventMission(mission, iconImageUrl, bannerImageUrl);
         missionRepository.save(newMission);
         saveFile(newMission, mission.getMissionImage());
+    }
+
+    public List<DeadlineMissionResponseDto> getDeadlineMission(Long userId) {
+        isAdmin(userId);
+        List<Mission> deadlineMission = makeDeadLineMission();
+        Set<Mission> uniqueDeadLineMission = new HashSet<>(deadlineMission);
+        return makeUniqueDeadLineMissionResponseList(uniqueDeadLineMission);
+    }
+
+    private List<Mission> makeDeadLineMission() {
+        return missionRepository.findAllByMissionStatusAndMissionParticipationStatus(
+                MissionStatus.CLOSED,
+                MissionParticipationStatus.PENDING);
+    }
+
+    @NotNull
+    private List<DeadlineMissionResponseDto> makeUniqueDeadLineMissionResponseList(Set<Mission> uniqueDeadLineMission) {
+        return uniqueDeadLineMission.stream().map(m -> {
+            DeadlineMissionResponseDto result = m.makeDeadLineMission();
+            if (m.getMissionType().equals(MissionType.EVENT)) {
+                int count = missionParticipationRepository.findAllByMission_Id(m.getId()).size();
+                result.setParticipationCount(count);
+            }
+            return result;
+        }).toList();
     }
 
 
