@@ -1,6 +1,7 @@
 package com.mobile.server.domain.mission.controller;
 
 import static com.mobile.server.domain.mission.e.MissionStatus.CLOSED;
+import static com.mobile.server.domain.mission.e.MissionStatus.OPEN;
 import static com.mobile.server.domain.mission.e.MissionType.EVENT;
 import static com.mobile.server.domain.missionParticipation.domain.MissionParticipation.builder;
 import static com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus.APPROVED;
@@ -397,5 +398,67 @@ class MissionManagementControllerTest {
                 });
     }
 
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 승인 대기 미션 조회에 성공한다.")
+    void getPendingMission_success() throws Exception {
+        // given
+        Mission openMission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 사용 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(2))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        missionParticipationRepository.save(
+                builder()
+                        .mission(openMission)
+                        .user(user1)
+                        .participationStatus(
+                                PENDING)
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/pending")
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).contains("텀블러 사용 챌린지");
+                    Assertions.assertThat(response).contains("1");
+                });
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 승인 대기 미션 조회를 시도하면 403 Forbidden 반환")
+    void getPendingMission_fail_forbidden() throws Exception {
+        mockMvc.perform(get("/api/admin/missions/pending")
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 승인 대기 미션이 없을 경우 빈 리스트 반환")
+    void getPendingMission_success_emptyList() throws Exception {
+        mockMvc.perform(get("/api/admin/missions/pending")
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).isEqualTo("[]");
+                });
+    }
 
 }
