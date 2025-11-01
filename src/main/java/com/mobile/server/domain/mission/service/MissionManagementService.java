@@ -77,6 +77,15 @@ public class MissionManagementService {
     }
 
     public List<MissionResponseDto> getPendingMission(Long userId) {
+        isAdmin(userId);
+        List<Mission> pendingMission = makePendingMission();
+        Set<Mission> uniquePendingMission = new HashSet<>(pendingMission);
+        return makeUniqueMissionResponseList(uniquePendingMission);
+    }
+
+    private List<Mission> makePendingMission() {
+        return missionRepository.findAllByMissionStatusAndMissionParticipationStatus(
+                MissionStatus.OPEN, MissionParticipationStatus.PENDING);
     }
 
     private List<Mission> makeTerminationMission() {
