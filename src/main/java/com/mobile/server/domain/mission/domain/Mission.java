@@ -66,7 +66,7 @@ public class Mission extends BaseCreatedEntity {
         return MissionResponseDto.builder().missionId(id)
                 .title(title).missionPoint(missionPoint)
                 .category(category).iconImageUrl(iconUrl)
-                .bannerImageUrl(bannerUrl).build();
+                .bannerImageUrl(bannerUrl).createdAt(getCreatedAt()).build();
     }
 
 }
