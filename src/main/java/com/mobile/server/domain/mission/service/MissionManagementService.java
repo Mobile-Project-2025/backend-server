@@ -6,6 +6,7 @@ import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.domain.Mission;
+import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
 import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
@@ -81,6 +82,10 @@ public class MissionManagementService {
         List<Mission> pendingMission = makePendingMission();
         Set<Mission> uniquePendingMission = new HashSet<>(pendingMission);
         return makeUniqueMissionResponseList(uniquePendingMission);
+    }
+
+    public List<CategoryResponseDto> getCategoryNameList(Long userId) {
+
     }
 
     private List<Mission> makePendingMission() {
