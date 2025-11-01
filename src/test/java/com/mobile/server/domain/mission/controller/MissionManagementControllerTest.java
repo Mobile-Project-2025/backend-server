@@ -449,16 +449,28 @@ class MissionManagementControllerTest {
     }
 
     @Test
-    @DisplayName("성공: 승인 대기 미션이 없을 경우 빈 리스트 반환")
-    void getPendingMission_success_emptyList() throws Exception {
-        mockMvc.perform(get("/api/admin/missions/pending")
+    @DisplayName("성공: 관리자 계정이 카테고리 이름 리스트 조회에 성공한다.")
+    void getCategoryNameList_success() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/category")
                         .with(user(new CustomUserDetails(admin)))
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andDo(result -> {
                     String response = result.getResponse().getContentAsString();
-                    Assertions.assertThat(response).isEqualTo("[]");
+                    Assertions.assertThat(response).contains("PUBLIC_TRANSPORTATION");
+                    Assertions.assertThat(response).contains("RECYCLING");
                 });
     }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 카테고리 이름 리스트 조회를 시도하면 403 Forbidden 반환")
+    void getCategoryNameList_fail_forbidden() throws Exception {
+        mockMvc.perform(get("/api/admin/missions/category")
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
 
 }

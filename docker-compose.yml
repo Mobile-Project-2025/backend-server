@@ -13,6 +13,8 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION}
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      ADMIN_ID: ${ADMIN_ID}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     restart: always
     depends_on:
       db:

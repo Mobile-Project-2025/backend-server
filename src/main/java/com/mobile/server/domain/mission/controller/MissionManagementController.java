@@ -1,6 +1,7 @@
 package com.mobile.server.domain.mission.controller;
 
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
+import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
 import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
@@ -132,6 +133,23 @@ public class MissionManagementController {
     public ResponseEntity<List<MissionResponseDto>> getPendingMission(
             @AuthenticationPrincipal CustomUserDetails userInformation) {
         List<MissionResponseDto> result = managementService.getPendingMission(userInformation.getUserId());
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "카테고리 조회",
+            description = "미션에 대한 카테고리 목록을 모두 조회한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = CategoryResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping(path = "/category")
+    public ResponseEntity<List<CategoryResponseDto>> getCategoryNameList(
+            @AuthenticationPrincipal CustomUserDetails userInformation) {
+        List<CategoryResponseDto> result = managementService.getCategoryNameList(userInformation.getUserId());
         return ResponseEntity.ok(result);
     }
 
