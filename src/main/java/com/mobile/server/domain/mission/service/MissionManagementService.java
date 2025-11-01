@@ -76,6 +76,9 @@ public class MissionManagementService {
         return makeUniqueMissionResponseList(uniqueTerminationMission);
     }
 
+    public List<MissionResponseDto> getPendingMission(Long userId) {
+    }
+
     private List<Mission> makeTerminationMission() {
         return missionRepository.findAllByMissionStatusAndMissionParticipationStatusNot(
                 MissionStatus.CLOSED,

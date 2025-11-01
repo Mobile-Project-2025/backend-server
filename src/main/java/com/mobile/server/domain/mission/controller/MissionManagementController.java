@@ -118,5 +118,22 @@ public class MissionManagementController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(
+            summary = "승인대기 미션 조회",
+            description = "관리자가 마감되지 않은 승인대기 미션을 모두 조회한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MissionResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping(path = "/pending")
+    public ResponseEntity<List<MissionResponseDto>> getPendingMission(
+            @AuthenticationPrincipal CustomUserDetails userInformation) {
+        List<MissionResponseDto> result = managementService.getPendingMission(userInformation.getUserId());
+        return ResponseEntity.ok(result);
+    }
+
 
 }
