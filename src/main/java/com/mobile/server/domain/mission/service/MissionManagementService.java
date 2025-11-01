@@ -87,6 +87,7 @@ public class MissionManagementService {
     }
 
     public List<CategoryResponseDto> getCategoryNameList(Long userId) {
+        isAdmin(userId);
         return Arrays.stream(MissionCategory.values())
                 .map(category -> CategoryResponseDto.builder().categoryName(category.name()).build())
                 .toList();
