@@ -5,6 +5,7 @@ import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
+import com.mobile.server.domain.mission.constant.MissionCategory;
 import com.mobile.server.domain.mission.domain.Mission;
 import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
@@ -22,6 +23,7 @@ import com.mobile.server.util.exception.BusinessException;
 import com.mobile.server.util.file.FileResourceMap;
 import com.mobile.server.util.file.S3Uploader;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -85,7 +87,9 @@ public class MissionManagementService {
     }
 
     public List<CategoryResponseDto> getCategoryNameList(Long userId) {
-
+        return Arrays.stream(MissionCategory.values())
+                .map(category -> CategoryResponseDto.builder().categoryName(category.name()).build())
+                .toList();
     }
 
     private List<Mission> makePendingMission() {
