@@ -71,6 +71,10 @@ public class File extends BaseCreatedEntity {
         participation = null;
     }
 
+    public static File ofFile(FileDetailDto fileDetail) {
+        return base(fileDetail);
+    }
+
 
     public static File ofMission(Mission mission, FileDetailDto fileDetail) {
         File f = base(fileDetail);

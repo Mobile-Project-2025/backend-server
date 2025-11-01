@@ -1,6 +1,7 @@
 package com.mobile.server.domain.mission.domain;
 
 import com.mobile.server.domain.common.BaseCreatedEntity;
+import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import jakarta.persistence.Column;
@@ -14,12 +15,14 @@ import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class Mission extends BaseCreatedEntity {
 
     @Id
@@ -34,6 +37,7 @@ public class Mission extends BaseCreatedEntity {
     @Column(nullable = false)
     private Long missionPoint;
 
+    @Getter
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
     private MissionType missionType;
@@ -47,11 +51,22 @@ public class Mission extends BaseCreatedEntity {
     @Column(nullable = false)
     private String iconUrl;
 
+    @Column(nullable = false)
     private String bannerUrl;
 
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
     private MissionStatus status;
 
+    @Column(nullable = false)
+    private String category;
+
+
+    public MissionResponseDto makeMissionResponseDto() {
+        return MissionResponseDto.builder().missionId(id)
+                .title(title).missionPoint(missionPoint)
+                .category(category).iconImageUrl(iconUrl)
+                .bannerImageUrl(bannerUrl).createdAt(getCreatedAt()).build();
+    }
 
 }
