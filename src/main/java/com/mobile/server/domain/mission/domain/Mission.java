@@ -62,6 +62,10 @@ public class Mission extends BaseCreatedEntity {
     @Column(nullable = false)
     private String category;
 
+    public void closeMission() {
+        status = MissionStatus.CLOSED;
+    }
+
 
     public MissionResponseDto makeMissionResponseDto() {
         return MissionResponseDto.builder().missionId(id)
