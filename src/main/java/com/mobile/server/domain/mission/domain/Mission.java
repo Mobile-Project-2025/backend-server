@@ -4,6 +4,7 @@ import com.mobile.server.domain.common.BaseCreatedEntity;
 import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
+import com.mobile.server.domain.regularMission.domain.RegularMission;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -67,6 +68,15 @@ public class Mission extends BaseCreatedEntity {
                 .title(title).missionPoint(missionPoint)
                 .category(category).iconImageUrl(iconUrl)
                 .bannerImageUrl(bannerUrl).createdAt(getCreatedAt()).build();
+    }
+
+    public static Mission makeMissionFromRegularMission(RegularMission regularMission) {
+        return Mission.builder().title(regularMission.getTitle()).content(regularMission.getContent())
+                .missionPoint(regularMission.getMissionPoint()).missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.now().plusDays(1)).deadLine(LocalDate.now().plusDays(1))
+                .iconUrl(regularMission.getIconUrl()).bannerUrl(regularMission.getBannerUrl())
+                .status(MissionStatus.CLOSED).category(regularMission.getCategory())
+                .build();
     }
 
 }
