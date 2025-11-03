@@ -125,5 +125,75 @@ class MissionUpdateSchedulerTest {
                 .isEqualTo(CLOSED);
     }
 
+    @Test
+    @DisplayName("오늘 시작하는 CLOSED 상태의 미션은 OPEN으로 변경된다")
+    void openMissionStartToday_successCase() {
+        // given
+        Mission mission1 = Mission.builder()
+                .title("오늘 시작 미션1")
+                .content("content1")
+                .missionPoint(15L)
+                .missionType(MissionType.SCHEDULED)
+                .category(MissionCategory.PUBLIC_TRANSPORTATION.name())
+                .iconUrl("url1")
+                .bannerUrl("url1")
+                .status(CLOSED)
+                .startDate(LocalDate.now())
+                .deadLine(LocalDate.now().plusDays(3))
+                .build();
+
+        Mission mission2 = Mission.builder()
+                .title("내일 시작 미션")
+                .content("content2")
+                .missionPoint(25L)
+                .missionType(MissionType.SCHEDULED)
+                .category(MissionCategory.PUBLIC_TRANSPORTATION.name())
+                .iconUrl("url2")
+                .bannerUrl("url2")
+                .status(CLOSED)
+                .startDate(LocalDate.now().plusDays(1))
+                .deadLine(LocalDate.now().plusDays(5))
+                .build();
+
+        Mission mission3 = Mission.builder()
+                .title("이미 열린 미션")
+                .content("content3")
+                .missionPoint(35L)
+                .missionType(MissionType.SCHEDULED)
+                .category(MissionCategory.PUBLIC_TRANSPORTATION.name())
+                .iconUrl("url3")
+                .bannerUrl("url3")
+                .status(OPEN)
+                .startDate(LocalDate.now().minusDays(1))
+                .deadLine(LocalDate.now().plusDays(2))
+                .build();
+
+        missionRepository.saveAll(List.of(mission1, mission2, mission3));
+
+        // when
+        missionUpdateScheduler.openMissionStartToday();
+
+        // then
+        List<Mission> all = missionRepository.findAll();
+
+        // 오늘 시작 미션1은 OPEN
+        Assertions.assertThat(all.stream()
+                        .filter(m -> m.getTitle().equals("오늘 시작 미션1"))
+                        .findFirst().get().getStatus())
+                .isEqualTo(OPEN);
+
+        // 내일 시작 미션은 그대로 CLOSED
+        Assertions.assertThat(all.stream()
+                        .filter(m -> m.getTitle().equals("내일 시작 미션"))
+                        .findFirst().get().getStatus())
+                .isEqualTo(CLOSED);
+
+        // 이미 OPEN 상태인 미션은 그대로 유지
+        Assertions.assertThat(all.stream()
+                        .filter(m -> m.getTitle().equals("이미 열린 미션"))
+                        .findFirst().get().getStatus())
+                .isEqualTo(OPEN);
+    }
+
 
 }

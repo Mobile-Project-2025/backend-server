@@ -27,7 +27,6 @@ public class MissionUpdateScheduler {
     12시에 오늘이 미션 시작일인 미션에 대해 모두 Open 상태로 업데이트 처리
      */
     @Scheduled(cron = "0 30 23 * * ?")
-    @Transactional
     public void insertRegularMissionToMission() {
         int errorCount = 0;
         for (RegularMission regularMission : regularMissionRepository.findAll()) {
