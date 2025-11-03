@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
@@ -52,6 +53,40 @@ public class MissionUpdateScheduler {
         }
         closeMissions(missions);
     }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void openMissionStartToday() {
+        List<Mission> missions = findMissionStartingToday();
+        if (missions.isEmpty()) {
+            log.info("[스케줄러] 오늘 열리는 미션이 없습니다.");
+            return;
+        }
+        openMissions(missions);
+    }
+
+
+    private void openMissions(List<Mission> missions) {
+        for (Mission mission : missions) {
+            try {
+                openSingleMission(mission);
+            } catch (Exception e) {
+                log.error("미션 ID={} 열기 실패: {}", mission.getId(), e.getMessage());
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void openSingleMission(Mission mission) {
+        mission.openMission();
+        missionRepository.save(mission);
+    }
+
+    private List<Mission> findMissionStartingToday() {
+        return missionRepository.findAllByStatusAndStartDateEquals(
+                MissionStatus.CLOSED
+                , LocalDate.now());
+    }
+
 
     private void closeMissions(List<Mission> missions) {
         for (Mission mission : missions) {

@@ -39,4 +39,8 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
     List<Mission> findAllByStatusAndDeadLineLessThanEqual(
             com.mobile.server.domain.mission.e.MissionStatus missionStatus,
             LocalDate deadLine);
+
+    List<Mission> findAllByStatusAndStartDateEquals(
+            com.mobile.server.domain.mission.e.MissionStatus missionStatus,
+            LocalDate startDate);
 }

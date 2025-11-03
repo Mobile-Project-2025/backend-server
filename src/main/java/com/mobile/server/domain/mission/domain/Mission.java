@@ -66,6 +66,10 @@ public class Mission extends BaseCreatedEntity {
         status = MissionStatus.CLOSED;
     }
 
+    public void openMission() {
+        status = MissionStatus.OPEN;
+    }
+
 
     public MissionResponseDto makeMissionResponseDto() {
         return MissionResponseDto.builder().missionId(id)
