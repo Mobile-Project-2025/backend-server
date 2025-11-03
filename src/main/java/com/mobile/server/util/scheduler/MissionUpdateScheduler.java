@@ -44,7 +44,6 @@ public class MissionUpdateScheduler {
     }
 
     @Scheduled(cron = "0 55 23 * * ?")
-    @Transactional
     public void closeMissionDueToday() {
         List<Mission> missions = findMissionToBeCompleted();
         if (missions.isEmpty()) {
@@ -91,12 +90,17 @@ public class MissionUpdateScheduler {
     private void closeMissions(List<Mission> missions) {
         for (Mission mission : missions) {
             try {
-                mission.closeMission();
-                missionRepository.save(mission);
+                closeSingleMission(mission);
             } catch (Exception e) {
                 log.error("미션 ID={} 닫기 실패: {}", mission.getId(), e.getMessage());
             }
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void closeSingleMission(Mission mission) {
+        mission.closeMission();
+        missionRepository.save(mission);
     }
 
     private List<Mission> findMissionToBeCompleted() {
