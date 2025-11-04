@@ -1,6 +1,7 @@
 package com.mobile.server.domain.mission.controller;
 
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
+import com.mobile.server.domain.mission.dto.dto.ApprovalRequestResponseDto;
 import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
 import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -150,6 +152,25 @@ public class MissionManagementController {
     public ResponseEntity<List<CategoryResponseDto>> getCategoryNameList(
             @AuthenticationPrincipal CustomUserDetails userInformation) {
         List<CategoryResponseDto> result = managementService.getCategoryNameList(userInformation.getUserId());
+        return ResponseEntity.ok(result);
+    }
+
+
+    @Operation(
+            summary = "미션 승인 요청 목록 조회",
+            description = "특정 미션의 승인 대기 중인 목록을 조회한다..",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApprovalRequestResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping(path = "/request/{missionId}")
+    public ResponseEntity<ApprovalRequestResponseDto> getApprovalRequestList(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String missionId) {
+        ApprovalRequestResponseDto result = managementService.getApprovalRequestList(userInformation.getUserId(),
+                missionId);
         return ResponseEntity.ok(result);
     }
 

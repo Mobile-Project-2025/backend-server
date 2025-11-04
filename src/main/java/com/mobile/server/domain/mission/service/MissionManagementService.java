@@ -7,6 +7,7 @@ import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.constant.MissionCategory;
 import com.mobile.server.domain.mission.domain.Mission;
+import com.mobile.server.domain.mission.dto.dto.ApprovalRequestResponseDto;
 import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
 import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
 import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
@@ -185,4 +186,7 @@ public class MissionManagementService {
     }
 
 
+    public ApprovalRequestResponseDto getApprovalRequestList(Long userId, String missionId) {
+        return null;
+    }
 }
