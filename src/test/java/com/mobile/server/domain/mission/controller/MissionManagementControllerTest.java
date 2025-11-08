@@ -1,5 +1,6 @@
 package com.mobile.server.domain.mission.controller;
 
+import static com.mobile.server.domain.file.domain.File.ofParticipation;
 import static com.mobile.server.domain.mission.e.MissionStatus.CLOSED;
 import static com.mobile.server.domain.mission.e.MissionStatus.OPEN;
 import static com.mobile.server.domain.mission.e.MissionType.EVENT;
@@ -467,6 +468,85 @@ class MissionManagementControllerTest {
     @DisplayName("실패: 일반 사용자가 카테고리 이름 리스트 조회를 시도하면 403 Forbidden 반환")
     void getCategoryNameList_fail_forbidden() throws Exception {
         mockMvc.perform(get("/api/admin/missions/category")
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 특정 미션의 승인 요청 목록 조회에 성공한다.")
+    void getApprovalRequestList_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        var file = fileRepository.save(
+                ofParticipation(
+                        participation,
+                        s3Uploader.makeMetaData(new MockMultipartFile(
+                                "testImage", "test.png", "image/png", "fake".getBytes()
+                        ))
+                )
+        );
+
+        s3Uploader.uploadFile(file.getFileKey(), new MockMultipartFile(
+                "testImage", "test.png", "image/png", "fake".getBytes()
+        ));
+
+        mockMvc.perform(get("/api/admin/missions/request/{missionId}", mission.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).contains("텀블러 인증 챌린지");
+                    Assertions.assertThat(response).contains("user");
+                    Assertions.assertThat(response).contains("https://s3/icon.png");
+                });
+
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 승인 요청 목록 조회를 시도하면 403 Forbidden 반환")
+    void getApprovalRequestList_fail_forbidden() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("일반 사용자 접근 테스트 미션")
+                        .content("테스트용 미션")
+                        .missionPoint(5L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now())
+                        .deadLine(LocalDate.now().plusDays(3))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("recycling")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/request/{missionId}", mission.getId())
                         .with(user(new CustomUserDetails(user1)))
                         .with(csrf()))
                 .andExpect(status().isForbidden());

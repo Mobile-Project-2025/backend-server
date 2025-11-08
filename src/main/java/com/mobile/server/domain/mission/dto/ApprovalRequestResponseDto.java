@@ -9,11 +9,13 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 
 @Schema(description = "미션 승인 요청 목록 DTO")
 @Builder
 @Setter
+@Getter
 public class ApprovalRequestResponseDto {
 
     @Schema(description = "미션 제목")
