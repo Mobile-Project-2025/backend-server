@@ -120,6 +120,9 @@ public class MissionManagementService {
         participation.rejectParticipation();
     }
 
+    public void requestMissionEarlyClose(Long userId, String missionId) {
+    }
+
     private MissionParticipation findParticipationById(String participationId) {
         return missionParticipationRepository.findById(
                 Long.parseLong(participationId)).orElseThrow(() -> new BusinessException(

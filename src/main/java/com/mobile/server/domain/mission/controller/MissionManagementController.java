@@ -205,4 +205,19 @@ public class MissionManagementController {
     }
 
 
+    @Operation(
+            summary = "미션 조기 마감 요청",
+            description = "미션 조기 마감을 서버에 요청한다.(단건 요청)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
+            }
+    )
+    @PatchMapping(path = "/{missionId}/early-close")
+    public ResponseEntity<Void> requestMissionEarlyClose(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String missionId) {
+        managementService.requestMissionEarlyClose(userInformation.getUserId(), missionId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
 }
