@@ -120,7 +120,18 @@ public class MissionManagementService {
         participation.rejectParticipation();
     }
 
+    @Transactional
     public void requestMissionEarlyClose(Long userId, String missionId) {
+        isAdmin(userId);
+        Mission mission = findMissionById(missionId);
+        isOpenMission(mission);
+        mission.closeMission();
+    }
+
+    private void isOpenMission(Mission mission) {
+        if (mission.getStatus().equals(MissionStatus.CLOSED)) {
+            throw new BusinessException(BusinessErrorCode.ALREADY_CLOSED_MISSION);
+        }
     }
 
     private MissionParticipation findParticipationById(String participationId) {

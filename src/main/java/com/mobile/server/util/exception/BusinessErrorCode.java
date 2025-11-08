@@ -19,7 +19,8 @@ public enum BusinessErrorCode {
     URL_FORBIDDEN(HttpStatus.FORBIDDEN, "사용자는 해당 기능을 사용할 수 없습니다."),
     INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "요청하신 카테고리는 존재하지 않습니다"),
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 미션은 존재하지 않습니다."),
-    PARTICIPATION_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 참여는 유효하지 않습니다.");
+    PARTICIPATION_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 참여는 유효하지 않습니다."),
+    ALREADY_CLOSED_MISSION(HttpStatus.BAD_REQUEST, "요청하신 미션은 이미 마감되었습니다.");
 
 
     private final HttpStatus status;
