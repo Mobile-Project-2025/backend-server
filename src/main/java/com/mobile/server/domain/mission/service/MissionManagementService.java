@@ -162,8 +162,7 @@ public class MissionManagementService {
         return uniqueMission.stream().map(m -> {
             MissionResponseDto result = m.makeMissionResponseDto();
             if (m.getMissionType().equals(MissionType.EVENT)) {
-                int count = missionParticipationRepository.findAllByMission_Id(m.getId()).size();
-                result.setParticipationCount(count);
+                result.setParticipationCount(m.getParticipationCount());
             }
             return result;
         }).toList();
