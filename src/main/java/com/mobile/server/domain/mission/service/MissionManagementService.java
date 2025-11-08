@@ -17,6 +17,7 @@ import com.mobile.server.domain.mission.dto.RequesterDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import com.mobile.server.domain.mission.repository.MissionRepository;
+import com.mobile.server.domain.missionParticipation.domain.MissionParticipation;
 import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
 import com.mobile.server.domain.missionParticipation.repository.MissionParticipationRepository;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
@@ -102,6 +103,21 @@ public class MissionManagementService {
         List<MissionParticipationFileDto> missionParticipationWithFile = fetchParticipationFiles(mission);
         List<RequesterDto> requesterList = mapToRequesterDtos(missionParticipationWithFile);
         return buildApprovalRequestResponse(mission, requesterList);
+    }
+
+    @Transactional
+    public void requestMissionParticipationApprove(Long userId, String participationId) {
+        isAdmin(userId);
+        MissionParticipation participation = findParticipationById(participationId);
+        participation.approveParticipation(participation.getUser(),
+                participation.getMission().getMissionPoint());
+    }
+
+    private MissionParticipation findParticipationById(String participationId) {
+        return missionParticipationRepository.findById(
+                Long.parseLong(participationId)).orElseThrow(() -> new BusinessException(
+                BusinessErrorCode.PARTICIPATION_NOT_FOUND)
+        );
     }
 
     private ApprovalRequestResponseDto buildApprovalRequestResponse(Mission mission,
@@ -230,7 +246,4 @@ public class MissionManagementService {
     }
 
 
-    public void requestMissionParticipationAccept(Long userId, String participationId) {
-
-    }
 }

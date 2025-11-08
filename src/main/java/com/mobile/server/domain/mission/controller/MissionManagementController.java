@@ -183,9 +183,9 @@ public class MissionManagementController {
             }
     )
     @PatchMapping(path = "/request/accept/{participationId}")
-    public ResponseEntity<Void> requestMissionParticipationAccept(
+    public ResponseEntity<Void> requestMissionParticipationApprove(
             @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String participationId) {
-        managementService.requestMissionParticipationAccept(userInformation.getUserId(), participationId);
+        managementService.requestMissionParticipationApprove(userInformation.getUserId(), participationId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

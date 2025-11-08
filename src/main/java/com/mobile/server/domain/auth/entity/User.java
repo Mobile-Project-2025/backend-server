@@ -52,5 +52,8 @@ public class User extends BaseCreatedEntity {
     @JoinColumn
     private File profileImage;
 
+    public void grantMissionPoint(Long rewardPoint) {
+        cumulativePoint += rewardPoint;
+    }
 
 }

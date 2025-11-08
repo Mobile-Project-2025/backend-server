@@ -43,4 +43,10 @@ public class MissionParticipation extends BaseCreatedEntity {
     @JoinColumn
     private User user;
 
+
+    public void approveParticipation(User participant, Long rewardPoint) {
+        participationStatus = MissionParticipationStatus.APPROVED;
+        participant.grantMissionPoint(rewardPoint);
+    }
+
 }
