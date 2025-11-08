@@ -49,4 +49,8 @@ public class MissionParticipation extends BaseCreatedEntity {
         participant.grantMissionPoint(rewardPoint);
     }
 
+    public void rejectParticipation() {
+        participationStatus = MissionParticipationStatus.REJECTED;
+    }
+
 }

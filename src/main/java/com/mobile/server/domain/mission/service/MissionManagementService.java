@@ -113,6 +113,13 @@ public class MissionManagementService {
                 participation.getMission().getMissionPoint());
     }
 
+    @Transactional
+    public void requestMissionParticipationReject(Long userId, String participationId) {
+        isAdmin(userId);
+        MissionParticipation participation = findParticipationById(participationId);
+        participation.rejectParticipation();
+    }
+
     private MissionParticipation findParticipationById(String participationId) {
         return missionParticipationRepository.findById(
                 Long.parseLong(participationId)).orElseThrow(() -> new BusinessException(
@@ -246,7 +253,4 @@ public class MissionManagementService {
     }
 
 
-    public void requestMissionParticipationReject(Long userId, String participationId) {
-
-    }
 }
