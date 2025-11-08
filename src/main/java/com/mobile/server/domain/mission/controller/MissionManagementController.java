@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -172,6 +173,20 @@ public class MissionManagementController {
         ApprovalRequestResponseDto result = managementService.getApprovalRequestList(userInformation.getUserId(),
                 missionId);
         return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "미션 참여 승인 요청",
+            description = "미션 참여에 대한 승인을 서버에 요청한다.(단건 요청)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
+            }
+    )
+    @PatchMapping(path = "/request/accept/{participationId}")
+    public ResponseEntity<Void> requestMissionParticipationAccept(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String participationId) {
+        managementService.requestMissionParticipationAccept(userInformation.getUserId(), participationId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 

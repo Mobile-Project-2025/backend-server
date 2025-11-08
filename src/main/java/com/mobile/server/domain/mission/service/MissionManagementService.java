@@ -230,4 +230,7 @@ public class MissionManagementService {
     }
 
 
+    public void requestMissionParticipationAccept(Long userId, String participationId) {
+
+    }
 }
