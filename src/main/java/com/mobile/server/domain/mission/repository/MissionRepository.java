@@ -33,4 +33,6 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
     List<Mission> findAllByMissionStatusAndMissionParticipationStatusNot(
             @Param("missionStatus") com.mobile.server.domain.mission.e.MissionStatus missionStatus,
             @Param("missionParticipationStatus") MissionParticipationStatus status);
+
+
 }

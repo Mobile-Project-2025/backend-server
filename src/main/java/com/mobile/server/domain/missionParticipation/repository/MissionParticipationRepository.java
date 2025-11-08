@@ -8,5 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MissionParticipationRepository extends JpaRepository<MissionParticipation, Long> {
 
-    public List<MissionParticipation> findAllByMission_Id(Long missionId);
+    List<MissionParticipation> findAllByMission_Id(Long missionId);
+
+
 }

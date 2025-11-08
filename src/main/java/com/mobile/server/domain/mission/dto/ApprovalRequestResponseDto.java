@@ -1,4 +1,4 @@
-package com.mobile.server.domain.mission.dto.dto;
+package com.mobile.server.domain.mission.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -8,8 +8,12 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.Builder;
+import lombok.Setter;
 
 @Schema(description = "미션 승인 요청 목록 DTO")
+@Builder
+@Setter
 public class ApprovalRequestResponseDto {
 
     @Schema(description = "미션 제목")

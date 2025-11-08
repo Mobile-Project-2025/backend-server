@@ -7,11 +7,13 @@ import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.constant.MissionCategory;
 import com.mobile.server.domain.mission.domain.Mission;
-import com.mobile.server.domain.mission.dto.dto.ApprovalRequestResponseDto;
-import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
-import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
-import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
-import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.ApprovalRequestResponseDto;
+import com.mobile.server.domain.mission.dto.CategoryResponseDto;
+import com.mobile.server.domain.mission.dto.EventMissionCreationDto;
+import com.mobile.server.domain.mission.dto.MissionParticipationFileDto;
+import com.mobile.server.domain.mission.dto.MissionResponseDto;
+import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.RequesterDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import com.mobile.server.domain.mission.repository.MissionRepository;
@@ -92,6 +94,49 @@ public class MissionManagementService {
         return Arrays.stream(MissionCategory.values())
                 .map(category -> CategoryResponseDto.builder().categoryName(category.name()).build())
                 .toList();
+    }
+
+    public ApprovalRequestResponseDto getApprovalRequestList(Long userId, String missionId) {
+        isAdmin(userId);
+        Mission mission = findMissionById(missionId);
+        List<MissionParticipationFileDto> missionParticipationWithFile = fetchParticipationFiles(mission);
+        List<RequesterDto> requesterList = mapToRequesterDtos(missionParticipationWithFile);
+        return buildApprovalRequestResponse(mission, requesterList);
+    }
+
+    private ApprovalRequestResponseDto buildApprovalRequestResponse(Mission mission,
+                                                                    List<RequesterDto> requesterList) {
+        ApprovalRequestResponseDto result = ApprovalRequestResponseDto.builder().title(mission.getTitle())
+                .content(mission.getContent())
+                .iconImageUrl(mission.getIconUrl())
+                .startDate(mission.getStartDate()).deadLine(mission.getDeadLine())
+                .missionPoint(mission.getMissionPoint())
+                .requesterList(requesterList).build();
+        if (mission.getMissionType().equals(MissionType.EVENT)) {
+            result.setParticipationCount(mission.getParticipationCount());
+        }
+        return result;
+    }
+
+    @NotNull
+    private List<RequesterDto> mapToRequesterDtos(
+            List<MissionParticipationFileDto> missionParticipationWithFile) {
+        return missionParticipationWithFile.stream().map(data ->
+                RequesterDto.builder().participationId(data.participationId())
+                        .nickName(data.user().getNickname())
+                        .missionParticipationTime(data.createdAt())
+                        .participationPhoto(s3Uploader.getUrlFile(data.fileKey()))
+                        .build()).toList();
+    }
+
+    private List<MissionParticipationFileDto> fetchParticipationFiles(Mission mission) {
+        return fileRepository.findAllByMission_IdAndMissionStatus(
+                MissionParticipationStatus.PENDING, mission.getId());
+    }
+
+    private Mission findMissionById(String missionId) {
+        return missionRepository.findById(Long.parseLong(missionId)).orElseThrow(() ->
+                new BusinessException(BusinessErrorCode.MISSION_NOT_FOUND));
     }
 
     private List<Mission> makePendingMission() {
@@ -186,7 +231,4 @@ public class MissionManagementService {
     }
 
 
-    public ApprovalRequestResponseDto getApprovalRequestList(Long userId, String missionId) {
-        return null;
-    }
 }

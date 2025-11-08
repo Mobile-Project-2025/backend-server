@@ -1,11 +1,11 @@
 package com.mobile.server.domain.mission.controller;
 
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
-import com.mobile.server.domain.mission.dto.dto.ApprovalRequestResponseDto;
-import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
-import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
-import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
-import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.ApprovalRequestResponseDto;
+import com.mobile.server.domain.mission.dto.CategoryResponseDto;
+import com.mobile.server.domain.mission.dto.EventMissionCreationDto;
+import com.mobile.server.domain.mission.dto.MissionResponseDto;
+import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.service.MissionManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

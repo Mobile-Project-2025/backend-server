@@ -1,4 +1,4 @@
-package com.mobile.server.domain.mission.dto.dto;
+package com.mobile.server.domain.mission.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
