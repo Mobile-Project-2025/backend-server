@@ -9,12 +9,14 @@ import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class RegularMission extends BaseCreatedEntity {
 
     @Id
@@ -37,5 +39,6 @@ public class RegularMission extends BaseCreatedEntity {
 
     @Column(nullable = false)
     private String category;
+
 
 }
