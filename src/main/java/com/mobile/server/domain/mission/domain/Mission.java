@@ -1,7 +1,7 @@
 package com.mobile.server.domain.mission.domain;
 
 import com.mobile.server.domain.common.BaseCreatedEntity;
-import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
+import com.mobile.server.domain.mission.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import jakarta.persistence.Column;
@@ -60,6 +60,13 @@ public class Mission extends BaseCreatedEntity {
 
     @Column(nullable = false)
     private String category;
+
+    @Column(nullable = false)
+    private Integer participationCount = 0;
+
+    public void incrementParticipationCount() {
+        this.participationCount += 1;
+    }
 
 
     public MissionResponseDto makeMissionResponseDto() {
