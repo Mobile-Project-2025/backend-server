@@ -717,5 +717,87 @@ class MissionManagementControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    @DisplayName("성공: 관리자 계정이 미션 조기 마감 요청에 성공한다.")
+    void requestMissionEarlyClose_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/{missionId}/early-close", mission.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        // then
+        Mission updatedMission = missionRepository.findById(mission.getId()).orElseThrow();
+        Assertions.assertThat(updatedMission.getStatus()).isEqualTo(CLOSED);
+    }
+
+    @Test
+    @DisplayName("실패: 이미 마감된 미션에 대해 조기 마감 요청 시 예외 발생")
+    void requestMissionEarlyClose_fail_alreadyClosed() throws Exception {
+        // given
+        Mission closedMission = missionRepository.save(
+                Mission.builder()
+                        .title("에코백 챌린지")
+                        .content("에코백 인증샷 올리기")
+                        .missionPoint(15L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(5))
+                        .deadLine(LocalDate.now().minusDays(1))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(CLOSED)
+                        .category("recycling")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/{missionId}/early-close", closedMission.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 조기 마감 요청 시 권한 예외 발생")
+    void requestMissionEarlyClose_fail_forbidden() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("대중교통 이용 챌린지")
+                        .content("지하철 이용 후 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(1))
+                        .deadLine(LocalDate.now().plusDays(3))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/{missionId}/early-close", mission.getId())
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
 
 }
