@@ -11,6 +11,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -550,6 +551,99 @@ class MissionManagementControllerTest {
                         .with(user(new CustomUserDetails(user1)))
                         .with(csrf()))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 미션 참여 승인 요청에 성공한다.")
+    void requestMissionParticipationApprove_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 사용 챌린지")
+                        .content("텀블러 사용 인증샷 업로드")
+                        .missionPoint(15L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(2))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        // when
+        mockMvc.perform(
+                        patch("/api/admin/missions/request/approve/{participationId}", participation.getId())
+                                .with(user(new CustomUserDetails(admin)))
+                                .with(csrf())
+                )
+                .andExpect(status().isOk());
+
+        // then
+        var updatedParticipation = missionParticipationRepository.findById(participation.getId()).orElseThrow();
+        var updatedUser = userRepository.findById(user1.getId()).orElseThrow();
+
+        Assertions.assertThat(updatedParticipation.getParticipationStatus())
+                .isEqualTo(APPROVED);
+        Assertions.assertThat(updatedUser.getCumulativePoint())
+                .isEqualTo(15L);
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 승인 요청을 시도하면 403 Forbidden 반환")
+    void requestMissionParticipationApprove_fail_forbidden() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 사용 챌린지")
+                        .content("텀블러 사용 인증샷 업로드")
+                        .missionPoint(15L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now())
+                        .deadLine(LocalDate.now().plusDays(1))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(
+                        patch("/api/admin/missions/request/approve/{participationId}", participation.getId())
+                                .with(user(new CustomUserDetails(user1)))
+                                .with(csrf())
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 participationId로 승인 요청 시 404 반환")
+    void requestMissionParticipationApprove_fail_notFound() throws Exception {
+        // when & then
+        mockMvc.perform(
+                        patch("/api/admin/missions/request/accept/{participationId}", 9999L)
+                                .with(user(new CustomUserDetails(admin)))
+                                .with(csrf())
+                )
+                .andExpect(status().isNotFound());
     }
 
 
