@@ -190,4 +190,19 @@ public class MissionManagementController {
     }
 
 
+    @Operation(
+            summary = "미션 참여 반려 요청",
+            description = "미션 참여에 대한 반려를 서버에 요청한다.(단건 요청)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
+            }
+    )
+    @PatchMapping(path = "/request/reject/{participationId}")
+    public ResponseEntity<Void> requestMissionParticipationReject(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String participationId) {
+        managementService.requestMissionParticipationReject(userInformation.getUserId(), participationId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
 }

@@ -246,4 +246,7 @@ public class MissionManagementService {
     }
 
 
+    public void requestMissionParticipationReject(Long userId, String participationId) {
+
+    }
 }
