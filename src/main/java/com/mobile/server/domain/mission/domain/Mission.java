@@ -62,6 +62,7 @@ public class Mission extends BaseCreatedEntity {
     private String category;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer participationCount = 0;
 
     public void incrementParticipationCount() {

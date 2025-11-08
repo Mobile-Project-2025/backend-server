@@ -45,6 +45,7 @@ public class User extends BaseCreatedEntity {
     private RoleType role;
 
     @Column(nullable = false)
+    @Builder.Default
     private Long cumulativePoint = 0L;
 
     @OneToOne(fetch = FetchType.LAZY)
