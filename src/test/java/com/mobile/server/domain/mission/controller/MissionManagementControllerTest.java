@@ -26,6 +26,7 @@ import com.mobile.server.domain.mission.constant.MissionCategory;
 import com.mobile.server.domain.mission.domain.Mission;
 import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.repository.MissionRepository;
+import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
 import com.mobile.server.domain.missionParticipation.repository.MissionParticipationRepository;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
 import java.time.LocalDate;
@@ -644,6 +645,76 @@ class MissionManagementControllerTest {
                                 .with(csrf())
                 )
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 미션 참여 반려 요청에 성공한다.")
+    void requestMissionParticipationReject_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/request/reject/{participationId}", participation.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        var updatedParticipation = missionParticipationRepository.findById(participation.getId()).orElseThrow();
+        Assertions.assertThat(
+                updatedParticipation.getParticipationStatus().equals(MissionParticipationStatus.REJECTED));
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 미션 참여 반려 요청 시 403 Forbidden 발생")
+    void requestMissionParticipationReject_fail_forbidden() throws Exception {
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        mockMvc.perform(patch("/api/admin/missions/request/reject/{participationId}", participation.getId())
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
     }
 
 
