@@ -583,7 +583,7 @@ class MissionManagementControllerTest {
 
         // when
         mockMvc.perform(
-                        patch("/api/admin/missions/request/approve/{participationId}", participation.getId())
+                        patch("/api/admin/missions/request/{participationId}/approve", participation.getId())
                                 .with(user(new CustomUserDetails(admin)))
                                 .with(csrf())
                 )
@@ -628,7 +628,7 @@ class MissionManagementControllerTest {
 
         // when & then
         mockMvc.perform(
-                        patch("/api/admin/missions/request/approve/{participationId}", participation.getId())
+                        patch("/api/admin/missions/request/{participationId}/approve", participation.getId())
                                 .with(user(new CustomUserDetails(user1)))
                                 .with(csrf())
                 )
@@ -640,7 +640,7 @@ class MissionManagementControllerTest {
     void requestMissionParticipationApprove_fail_notFound() throws Exception {
         // when & then
         mockMvc.perform(
-                        patch("/api/admin/missions/request/accept/{participationId}", 9999L)
+                        patch("/api/admin/missions/request/{participationId}/approve", 9999L)
                                 .with(user(new CustomUserDetails(admin)))
                                 .with(csrf())
                 )
@@ -675,7 +675,7 @@ class MissionManagementControllerTest {
         );
 
         // when & then
-        mockMvc.perform(patch("/api/admin/missions/request/reject/{participationId}", participation.getId())
+        mockMvc.perform(patch("/api/admin/missions/request/{participationId}/reject", participation.getId())
                         .with(user(new CustomUserDetails(admin)))
                         .with(csrf()))
                 .andExpect(status().isOk());
@@ -711,7 +711,7 @@ class MissionManagementControllerTest {
                         .build()
         );
 
-        mockMvc.perform(patch("/api/admin/missions/request/reject/{participationId}", participation.getId())
+        mockMvc.perform(patch("/api/admin/missions/request/{participationId}/reject", participation.getId())
                         .with(user(new CustomUserDetails(user1)))
                         .with(csrf()))
                 .andExpect(status().isForbidden());

@@ -182,7 +182,7 @@ public class MissionManagementController {
                     @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
             }
     )
-    @PatchMapping(path = "/request/approve/{participationId}")
+    @PatchMapping(path = "/request/{participationId}/approve")
     public ResponseEntity<Void> requestMissionParticipationApprove(
             @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String participationId) {
         managementService.requestMissionParticipationApprove(userInformation.getUserId(), participationId);
@@ -197,7 +197,7 @@ public class MissionManagementController {
                     @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
             }
     )
-    @PatchMapping(path = "/request/reject/{participationId}")
+    @PatchMapping(path = "/request/{participationId}/reject")
     public ResponseEntity<Void> requestMissionParticipationReject(
             @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String participationId) {
         managementService.requestMissionParticipationReject(userInformation.getUserId(), participationId);
