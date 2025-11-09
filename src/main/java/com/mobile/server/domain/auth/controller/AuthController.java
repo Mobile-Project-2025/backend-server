@@ -1,5 +1,6 @@
 package com.mobile.server.domain.auth.controller;
 
+import com.mobile.server.domain.auth.dto.CheckDuplicationRes;
 import com.mobile.server.domain.auth.dto.SignInReq;
 import com.mobile.server.domain.auth.dto.SignInRes;
 import com.mobile.server.domain.auth.dto.SignUpReq;
@@ -9,9 +10,11 @@ import com.mobile.server.domain.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,6 +30,20 @@ public class AuthController {
     public ResponseEntity<Void> register(@RequestBody SignUpReq signInReq) {
         userService.register(signInReq);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    //학번 중복 체크
+    @GetMapping("/check-student-id")
+    public ResponseEntity<CheckDuplicationRes> checkStudentId(@RequestParam String studentId) {
+        userService.checkStudentIdDuplication(studentId);
+        return ResponseEntity.ok(new CheckDuplicationRes(true));
+    }
+
+    //닉네임 중복 체크
+    @GetMapping("/check-nickname")
+    public ResponseEntity<CheckDuplicationRes> checkNickname(@RequestParam String nickname) {
+        userService.checkNicknameDuplication(nickname);
+        return ResponseEntity.ok(new CheckDuplicationRes(true));
     }
 
     //로그인
