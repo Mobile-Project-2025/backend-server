@@ -17,12 +17,14 @@ import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class MissionParticipation extends BaseCreatedEntity {
 
     @Id
@@ -40,5 +42,15 @@ public class MissionParticipation extends BaseCreatedEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
     private User user;
+
+
+    public void approveParticipation(User participant, Long rewardPoint) {
+        participationStatus = MissionParticipationStatus.APPROVED;
+        participant.grantMissionPoint(rewardPoint);
+    }
+
+    public void rejectParticipation() {
+        participationStatus = MissionParticipationStatus.REJECTED;
+    }
 
 }

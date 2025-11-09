@@ -1,7 +1,7 @@
 package com.mobile.server.domain.mission.domain;
 
 import com.mobile.server.domain.common.BaseCreatedEntity;
-import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
+import com.mobile.server.domain.mission.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import com.mobile.server.domain.regularMission.domain.RegularMission;
@@ -61,6 +61,14 @@ public class Mission extends BaseCreatedEntity {
 
     @Column(nullable = false)
     private String category;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer participationCount = 0;
+
+    public void incrementParticipationCount() {
+        this.participationCount += 1;
+    }
 
     public void closeMission() {
         status = MissionStatus.CLOSED;

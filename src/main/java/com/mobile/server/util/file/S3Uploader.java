@@ -79,7 +79,7 @@ public class S3Uploader {
         if (keys == null || keys.isEmpty()) {
             throw new BusinessException(BusinessErrorCode.FILE_NOT_FOUND);
         }
-        return keys.parallelStream().map(this::getUrlFile).collect(Collectors.toList());
+        return keys.stream().map(this::getUrlFile).collect(Collectors.toList());
     }
 
 

@@ -1,10 +1,11 @@
 package com.mobile.server.domain.mission.controller;
 
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
-import com.mobile.server.domain.mission.dto.dto.CategoryResponseDto;
-import com.mobile.server.domain.mission.dto.dto.EventMissionCreationDto;
-import com.mobile.server.domain.mission.dto.dto.MissionResponseDto;
-import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.ApprovalRequestResponseDto;
+import com.mobile.server.domain.mission.dto.CategoryResponseDto;
+import com.mobile.server.domain.mission.dto.EventMissionCreationDto;
+import com.mobile.server.domain.mission.dto.MissionResponseDto;
+import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.service.MissionManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -151,6 +154,69 @@ public class MissionManagementController {
             @AuthenticationPrincipal CustomUserDetails userInformation) {
         List<CategoryResponseDto> result = managementService.getCategoryNameList(userInformation.getUserId());
         return ResponseEntity.ok(result);
+    }
+
+
+    @Operation(
+            summary = "미션 승인 요청 목록 조회",
+            description = "특정 미션의 승인 대기 중인 목록을 조회한다..",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApprovalRequestResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping(path = "/request/{missionId}")
+    public ResponseEntity<ApprovalRequestResponseDto> getApprovalRequestList(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String missionId) {
+        ApprovalRequestResponseDto result = managementService.getApprovalRequestList(userInformation.getUserId(),
+                missionId);
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "미션 참여 승인 요청",
+            description = "미션 참여에 대한 승인을 서버에 요청한다.(단건 요청)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
+            }
+    )
+    @PatchMapping(path = "/request/{participationId}/approve")
+    public ResponseEntity<Void> requestMissionParticipationApprove(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String participationId) {
+        managementService.requestMissionParticipationApprove(userInformation.getUserId(), participationId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+    @Operation(
+            summary = "미션 참여 반려 요청",
+            description = "미션 참여에 대한 반려를 서버에 요청한다.(단건 요청)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
+            }
+    )
+    @PatchMapping(path = "/request/{participationId}/reject")
+    public ResponseEntity<Void> requestMissionParticipationReject(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String participationId) {
+        managementService.requestMissionParticipationReject(userInformation.getUserId(), participationId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+    @Operation(
+            summary = "미션 조기 마감 요청",
+            description = "미션 조기 마감을 서버에 요청한다.(단건 요청)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 처리됨.")
+            }
+    )
+    @PatchMapping(path = "/{missionId}/early-close")
+    public ResponseEntity<Void> requestMissionEarlyClose(
+            @AuthenticationPrincipal CustomUserDetails userInformation, @PathVariable String missionId) {
+        managementService.requestMissionEarlyClose(userInformation.getUserId(), missionId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 

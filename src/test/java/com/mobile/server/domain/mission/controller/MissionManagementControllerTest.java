@@ -1,5 +1,6 @@
 package com.mobile.server.domain.mission.controller;
 
+import static com.mobile.server.domain.file.domain.File.ofParticipation;
 import static com.mobile.server.domain.mission.e.MissionStatus.CLOSED;
 import static com.mobile.server.domain.mission.e.MissionStatus.OPEN;
 import static com.mobile.server.domain.mission.e.MissionType.EVENT;
@@ -10,6 +11,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,8 +24,9 @@ import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.constant.MissionCategory;
 import com.mobile.server.domain.mission.domain.Mission;
-import com.mobile.server.domain.mission.dto.dto.RegularMissionCreationDto;
+import com.mobile.server.domain.mission.dto.RegularMissionCreationDto;
 import com.mobile.server.domain.mission.repository.MissionRepository;
+import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
 import com.mobile.server.domain.missionParticipation.repository.MissionParticipationRepository;
 import com.mobile.server.domain.regularMission.RegularMissionRepository;
 import java.time.LocalDate;
@@ -467,6 +470,330 @@ class MissionManagementControllerTest {
     @DisplayName("실패: 일반 사용자가 카테고리 이름 리스트 조회를 시도하면 403 Forbidden 반환")
     void getCategoryNameList_fail_forbidden() throws Exception {
         mockMvc.perform(get("/api/admin/missions/category")
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 특정 미션의 승인 요청 목록 조회에 성공한다.")
+    void getApprovalRequestList_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        var file = fileRepository.save(
+                ofParticipation(
+                        participation,
+                        s3Uploader.makeMetaData(new MockMultipartFile(
+                                "testImage", "test.png", "image/png", "fake".getBytes()
+                        ))
+                )
+        );
+
+        s3Uploader.uploadFile(file.getFileKey(), new MockMultipartFile(
+                "testImage", "test.png", "image/png", "fake".getBytes()
+        ));
+
+        mockMvc.perform(get("/api/admin/missions/request/{missionId}", mission.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).contains("텀블러 인증 챌린지");
+                    Assertions.assertThat(response).contains("user");
+                    Assertions.assertThat(response).contains("https://s3/icon.png");
+                });
+
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 승인 요청 목록 조회를 시도하면 403 Forbidden 반환")
+    void getApprovalRequestList_fail_forbidden() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("일반 사용자 접근 테스트 미션")
+                        .content("테스트용 미션")
+                        .missionPoint(5L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now())
+                        .deadLine(LocalDate.now().plusDays(3))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("recycling")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(get("/api/admin/missions/request/{missionId}", mission.getId())
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 미션 참여 승인 요청에 성공한다.")
+    void requestMissionParticipationApprove_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 사용 챌린지")
+                        .content("텀블러 사용 인증샷 업로드")
+                        .missionPoint(15L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(2))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        // when
+        mockMvc.perform(
+                        patch("/api/admin/missions/request/{participationId}/approve", participation.getId())
+                                .with(user(new CustomUserDetails(admin)))
+                                .with(csrf())
+                )
+                .andExpect(status().isOk());
+
+        // then
+        var updatedParticipation = missionParticipationRepository.findById(participation.getId()).orElseThrow();
+        var updatedUser = userRepository.findById(user1.getId()).orElseThrow();
+
+        Assertions.assertThat(updatedParticipation.getParticipationStatus())
+                .isEqualTo(APPROVED);
+        Assertions.assertThat(updatedUser.getCumulativePoint())
+                .isEqualTo(15L);
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 승인 요청을 시도하면 403 Forbidden 반환")
+    void requestMissionParticipationApprove_fail_forbidden() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 사용 챌린지")
+                        .content("텀블러 사용 인증샷 업로드")
+                        .missionPoint(15L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now())
+                        .deadLine(LocalDate.now().plusDays(1))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(
+                        patch("/api/admin/missions/request/{participationId}/approve", participation.getId())
+                                .with(user(new CustomUserDetails(user1)))
+                                .with(csrf())
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 participationId로 승인 요청 시 404 반환")
+    void requestMissionParticipationApprove_fail_notFound() throws Exception {
+        // when & then
+        mockMvc.perform(
+                        patch("/api/admin/missions/request/{participationId}/approve", 9999L)
+                                .with(user(new CustomUserDetails(admin)))
+                                .with(csrf())
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 미션 참여 반려 요청에 성공한다.")
+    void requestMissionParticipationReject_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/request/{participationId}/reject", participation.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        var updatedParticipation = missionParticipationRepository.findById(participation.getId()).orElseThrow();
+        Assertions.assertThat(
+                updatedParticipation.getParticipationStatus().equals(MissionParticipationStatus.REJECTED));
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 미션 참여 반려 요청 시 403 Forbidden 발생")
+    void requestMissionParticipationReject_fail_forbidden() throws Exception {
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        var participation = missionParticipationRepository.save(
+                builder()
+                        .mission(mission)
+                        .user(user1)
+                        .participationStatus(PENDING)
+                        .build()
+        );
+
+        mockMvc.perform(patch("/api/admin/missions/request/{participationId}/reject", participation.getId())
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 미션 조기 마감 요청에 성공한다.")
+    void requestMissionEarlyClose_success() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("텀블러 인증 챌린지")
+                        .content("일회용 컵 대신 텀블러 사용 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(3))
+                        .deadLine(LocalDate.now().plusDays(2))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/{missionId}/early-close", mission.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        // then
+        Mission updatedMission = missionRepository.findById(mission.getId()).orElseThrow();
+        Assertions.assertThat(updatedMission.getStatus()).isEqualTo(CLOSED);
+    }
+
+    @Test
+    @DisplayName("실패: 이미 마감된 미션에 대해 조기 마감 요청 시 예외 발생")
+    void requestMissionEarlyClose_fail_alreadyClosed() throws Exception {
+        // given
+        Mission closedMission = missionRepository.save(
+                Mission.builder()
+                        .title("에코백 챌린지")
+                        .content("에코백 인증샷 올리기")
+                        .missionPoint(15L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(5))
+                        .deadLine(LocalDate.now().minusDays(1))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(CLOSED)
+                        .category("recycling")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/{missionId}/early-close", closedMission.getId())
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 조기 마감 요청 시 권한 예외 발생")
+    void requestMissionEarlyClose_fail_forbidden() throws Exception {
+        // given
+        Mission mission = missionRepository.save(
+                Mission.builder()
+                        .title("대중교통 이용 챌린지")
+                        .content("지하철 이용 후 인증샷 업로드")
+                        .missionPoint(10L)
+                        .missionType(EVENT)
+                        .startDate(LocalDate.now().minusDays(1))
+                        .deadLine(LocalDate.now().plusDays(3))
+                        .iconUrl("https://s3/icon.png")
+                        .bannerUrl("https://s3/banner.png")
+                        .status(OPEN)
+                        .category("publicTransportation")
+                        .build()
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/admin/missions/{missionId}/early-close", mission.getId())
                         .with(user(new CustomUserDetails(user1)))
                         .with(csrf()))
                 .andExpect(status().isForbidden());

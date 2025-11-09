@@ -1,4 +1,4 @@
-package com.mobile.server.domain.mission.dto.dto;
+package com.mobile.server.domain.mission.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -13,8 +13,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
 @Schema(description = "마감 미션 응답 DTO")
+@Builder
 public class MissionResponseDto {
 
     @Schema(description = "미션 id")
