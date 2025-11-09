@@ -27,9 +27,9 @@ public class AuthController {
 
     //회원가입
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody SignUpReq signInReq) {
+    public ResponseEntity<String> register(@RequestBody SignUpReq signInReq) {
         userService.register(signInReq);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공");
     }
 
     //학번 중복 체크
