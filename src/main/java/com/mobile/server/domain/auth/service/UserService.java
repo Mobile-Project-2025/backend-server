@@ -60,9 +60,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public User verify(String studentId, String rawPassword) {
         User user = userRepository.findByStudentId(studentId)
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.INVALID_CREDENTIALS));
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
+            throw new BusinessException(BusinessErrorCode.INVALID_CREDENTIALS);
         }
         return user;
     }
