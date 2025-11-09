@@ -4,6 +4,8 @@ import com.mobile.server.domain.auth.dto.SignUpReq;
 import com.mobile.server.domain.auth.entity.RoleType;
 import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.auth.repository.UserRepository;
+import com.mobile.server.util.exception.BusinessErrorCode;
+import com.mobile.server.util.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,11 @@ public class UserService {
     @Transactional
     public void register(SignUpReq signUpReq) {
         if (userRepository.existsByStudentId(signUpReq.getStudentId())) {
-            throw new IllegalArgumentException("이미 존재하는 아이디입니다.");
+            throw new BusinessException(BusinessErrorCode.DUPLICATE_STUDENT_ID);
+        }
+
+        if (userRepository.existsByNickname(signUpReq.getNickname())) {
+            throw new BusinessException(BusinessErrorCode.DUPLICATE_NICKNAME);
         }
 
         User user = User.builder()
@@ -32,6 +38,22 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+    }
+
+    //학번 중복 체크
+    @Transactional(readOnly = true)
+    public void checkStudentIdDuplication(String studentId) {
+        if (userRepository.existsByStudentId(studentId)) {
+            throw new BusinessException(BusinessErrorCode.DUPLICATE_STUDENT_ID);
+        }
+    }
+
+    //닉네임 중복 체크
+    @Transactional(readOnly = true)
+    public void checkNicknameDuplication(String nickname) {
+        if (userRepository.existsByNickname(nickname)) {
+            throw new BusinessException(BusinessErrorCode.DUPLICATE_NICKNAME);
+        }
     }
 
     //로그인 사용자 검증
