@@ -7,6 +7,7 @@ import com.mobile.server.domain.auth.dto.SignUpReq;
 import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.auth.jwt.JWTService;
 import com.mobile.server.domain.auth.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class AuthController {
 
     //회원가입
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody SignUpReq signInReq) {
+    public ResponseEntity<String> register(@Valid @RequestBody SignUpReq signInReq) {
         userService.register(signInReq);
         return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공");
     }
@@ -48,7 +49,7 @@ public class AuthController {
 
     //로그인
     @PostMapping("/login")
-    public ResponseEntity<SignInRes> login(@RequestBody SignInReq signInReq) {
+    public ResponseEntity<SignInRes> login(@Valid @RequestBody SignInReq signInReq) {
         User user = userService.verify(signInReq.getStudentId(), signInReq.getPassword());
         String access = jwtService.generateAccessToken(user);
         return ResponseEntity.ok(new SignInRes(access, user.getNickname(), user.getRole()));
