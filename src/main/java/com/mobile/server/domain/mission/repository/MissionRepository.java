@@ -25,12 +25,14 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
 
 
     @Query("""
-                SELECT m
-                FROM MissionParticipation p
-                JOIN p.mission m
-                WHERE m.status = :missionStatus
-                  AND p.participationStatus != :missionParticipationStatus
-            """)
+                 SELECT m
+                 FROM MissionParticipation p
+                 RIGHT JOIN p.mission m
+                 WHERE m.status = :missionStatus
+                 GROUP BY m
+                 HAVING COUNT(CASE WHEN p.participationStatus = :missionParticipationStatus THEN 1 END) = 0\s
+                        OR COUNT(p) = 0
+            \s""")
     List<Mission> findAllByMissionStatusAndMissionParticipationStatusNot(
             @Param("missionStatus") com.mobile.server.domain.mission.e.MissionStatus missionStatus,
             @Param("missionParticipationStatus") MissionParticipationStatus status);
