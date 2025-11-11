@@ -2,6 +2,8 @@ package com.mobile.server.domain.auth.jwt;
 
 import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.auth.repository.UserRepository;
+import com.mobile.server.util.exception.BusinessErrorCode;
+import com.mobile.server.util.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,7 @@ public class JWTService {
     //Token -> User 조회
     public User findUserFromToken(String token) {
         Long userId = jwtUtil.parseUserId(token);
-        return userRepository.findById(userId).orElseThrow();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
     }
 }

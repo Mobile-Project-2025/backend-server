@@ -37,4 +37,4 @@ spring:
         path-style-access-enabled: true
 
   jwt:
-    secret: test-secret-key
+    secret: test-jwt-secret-key-12345678901234567890
