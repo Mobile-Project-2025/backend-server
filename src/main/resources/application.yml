@@ -30,3 +30,7 @@ app:
     username: ${ADMIN_ID}
     password: ${ADMIN_PASSWORD}
 
+  user:
+    username: ${USER_ID}
+    password: ${USER_PASSWORD}
+
