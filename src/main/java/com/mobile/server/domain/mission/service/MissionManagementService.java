@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,7 +99,7 @@ public class MissionManagementService {
     }
 
     public List<MissionResponseDto> getScheduledMissions(CustomUserDetails userDetails) {
-        validateStudentOrAdmin(userDetails);
+        isStudent(userDetails);
         List<Mission> scheduledMissions = missionRepository.findAllByMissionTypeAndStatus(
                 MissionType.SCHEDULED, MissionStatus.OPEN);
         return scheduledMissions.stream()
@@ -109,7 +108,7 @@ public class MissionManagementService {
     }
 
     public List<MissionResponseDto> getEventMissions(CustomUserDetails userDetails) {
-        validateStudentOrAdmin(userDetails);
+        isStudent(userDetails);
         List<Mission> eventMissions = missionRepository.findAllByMissionTypeAndStatus(
                 MissionType.EVENT, MissionStatus.OPEN);
         return eventMissions.stream()
@@ -266,16 +265,6 @@ public class MissionManagementService {
                 .build();
     }
 
-    private void validateStudentOrAdmin(CustomUserDetails userDetails) {
-        boolean hasValidRole = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> role.equals("STUDENT") || role.equals("ADMIN"));
-
-        if (!hasValidRole) {
-            throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
-        }
-    }
-
     private String getRegularBannerImageUrl() {
         return FileResourceMap.BANNER_MAP.get(MissionType.SCHEDULED.name());
     }
@@ -296,6 +285,17 @@ public class MissionManagementService {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
         if (!user.getRole().equals(RoleType.ADMIN)) {
+            throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
+        }
+    }
+
+    private void isStudent(CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
+        }
+        User user = userRepository.findById(userDetails.getUserId()).orElseThrow(() ->
+                new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
+        if (!user.getRole().equals(RoleType.STUDENT)) {
             throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
         }
     }
