@@ -2,6 +2,7 @@ package com.mobile.server.domain.mission.service;
 
 import com.mobile.server.domain.auth.entity.RoleType;
 import com.mobile.server.domain.auth.entity.User;
+import com.mobile.server.domain.auth.jwt.CustomUserDetails;
 import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,6 +96,28 @@ public class MissionManagementService {
         isAdmin(userId);
         return Arrays.stream(MissionCategory.values())
                 .map(category -> CategoryResponseDto.builder().categoryName(category.name()).build())
+                .toList();
+    }
+
+    public List<MissionResponseDto> getScheduledMissions(CustomUserDetails userDetails) {
+        validateStudentOrAdmin(userDetails);
+        List<Mission> scheduledMissions = missionRepository.findAllByMissionTypeAndStatus(
+                MissionType.SCHEDULED, MissionStatus.OPEN);
+        return scheduledMissions.stream()
+                .map(Mission::makeMissionResponseDto)
+                .toList();
+    }
+
+    public List<MissionResponseDto> getEventMissions(CustomUserDetails userDetails) {
+        validateStudentOrAdmin(userDetails);
+        List<Mission> eventMissions = missionRepository.findAllByMissionTypeAndStatus(
+                MissionType.EVENT, MissionStatus.OPEN);
+        return eventMissions.stream()
+                .map(m -> {
+                    MissionResponseDto dto = m.makeMissionResponseDto();
+                    dto.setParticipationCount(m.getParticipationCount());
+                    return dto;
+                })
                 .toList();
     }
 
@@ -242,6 +266,16 @@ public class MissionManagementService {
                 .build();
     }
 
+    private void validateStudentOrAdmin(CustomUserDetails userDetails) {
+        boolean hasValidRole = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("STUDENT") || role.equals("ADMIN"));
+
+        if (!hasValidRole) {
+            throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
+        }
+    }
+
     private String getRegularBannerImageUrl() {
         return FileResourceMap.BANNER_MAP.get(MissionType.SCHEDULED.name());
     }
@@ -265,6 +299,4 @@ public class MissionManagementService {
             throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
         }
     }
-
-
 }
