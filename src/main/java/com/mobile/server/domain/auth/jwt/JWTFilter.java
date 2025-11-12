@@ -1,7 +1,6 @@
 package com.mobile.server.domain.auth.jwt;
 
-import com.mobile.server.domain.auth.dto.UserDto;
-import com.mobile.server.domain.auth.entity.RoleType;
+import com.mobile.server.domain.auth.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,12 +16,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -46,6 +45,11 @@ public class JWTFilter extends OncePerRequestFilter {
             }
 
             Long userId = jwtService.getUserIdFromToken(token);
+            if (!userRepository.existsById(userId)) {
+                chain.doFilter(request, response);
+                return;
+            }
+
             String studentId = jwtService.getStudentIdFromToken(token);
             String role = jwtService.getRoleFromToken(token);
 

@@ -2,6 +2,7 @@ package com.mobile.server.domain.auth.config;
 
 import com.mobile.server.domain.auth.jwt.JWTFilter;
 import com.mobile.server.domain.auth.jwt.JWTService;
+import com.mobile.server.domain.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JWTService jwtService;
+    private final UserRepository userRepository;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,7 +45,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JWTFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JWTFilter(jwtService, userRepository), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

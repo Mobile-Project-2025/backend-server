@@ -290,9 +290,6 @@ public class MissionManagementService {
     }
 
     private void isStudent(CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
-        }
         User user = userRepository.findById(userDetails.getUserId()).orElseThrow(() ->
                 new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
         if (!user.getRole().equals(RoleType.STUDENT)) {
