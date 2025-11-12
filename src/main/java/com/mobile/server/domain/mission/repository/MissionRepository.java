@@ -46,5 +46,8 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
             com.mobile.server.domain.mission.e.MissionStatus missionStatus,
             LocalDate startDate);
 
+    List<Mission> findAllByMissionTypeAndStatus(
+            com.mobile.server.domain.mission.e.MissionType missionType,
+            com.mobile.server.domain.mission.e.MissionStatus status);
 
 }

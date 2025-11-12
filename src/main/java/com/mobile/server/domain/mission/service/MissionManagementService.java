@@ -2,6 +2,7 @@ package com.mobile.server.domain.mission.service;
 
 import com.mobile.server.domain.auth.entity.RoleType;
 import com.mobile.server.domain.auth.entity.User;
+import com.mobile.server.domain.auth.jwt.CustomUserDetails;
 import com.mobile.server.domain.auth.repository.UserRepository;
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.file.respository.FileRepository;
@@ -94,6 +95,28 @@ public class MissionManagementService {
         isAdmin(userId);
         return Arrays.stream(MissionCategory.values())
                 .map(category -> CategoryResponseDto.builder().categoryName(category.name()).build())
+                .toList();
+    }
+
+    public List<MissionResponseDto> getScheduledMissions(CustomUserDetails userDetails) {
+        isStudent(userDetails);
+        List<Mission> scheduledMissions = missionRepository.findAllByMissionTypeAndStatus(
+                MissionType.SCHEDULED, MissionStatus.OPEN);
+        return scheduledMissions.stream()
+                .map(Mission::makeMissionResponseDto)
+                .toList();
+    }
+
+    public List<MissionResponseDto> getEventMissions(CustomUserDetails userDetails) {
+        isStudent(userDetails);
+        List<Mission> eventMissions = missionRepository.findAllByMissionTypeAndStatus(
+                MissionType.EVENT, MissionStatus.OPEN);
+        return eventMissions.stream()
+                .map(m -> {
+                    MissionResponseDto dto = m.makeMissionResponseDto();
+                    dto.setParticipationCount(m.getParticipationCount());
+                    return dto;
+                })
                 .toList();
     }
 
@@ -266,5 +289,11 @@ public class MissionManagementService {
         }
     }
 
-
+    private void isStudent(CustomUserDetails userDetails) {
+        User user = userRepository.findById(userDetails.getUserId()).orElseThrow(() ->
+                new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
+        if (!user.getRole().equals(RoleType.STUDENT)) {
+            throw new BusinessException(BusinessErrorCode.URL_FORBIDDEN);
+        }
+    }
 }
