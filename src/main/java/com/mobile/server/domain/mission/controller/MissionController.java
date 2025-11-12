@@ -134,17 +134,6 @@ public class MissionController {
                                       "detail": "사용자는 해당 기능을 사용할 수 없습니다.",
                                       "instance": "/api/missions/event"
                                     }
-                                    """))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
-                    content = @Content(mediaType = "application/problem+json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "type": "about:blank",
-                                      "title": "Not Found",
-                                      "status": 404,
-                                      "detail": "존재하지 않는 사용자입니다.",
-                                      "instance": "/api/missions/event"
-                                    }
                                     """)))
     })
     @GetMapping("/event")
