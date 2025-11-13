@@ -267,4 +267,7 @@ public class MissionManagementService {
     }
 
 
+    public List<MissionResponseDto> getAllMission(Long aLong) {
+        
+    }
 }
