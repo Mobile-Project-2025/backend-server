@@ -4,6 +4,7 @@ import static com.mobile.server.domain.file.domain.File.ofParticipation;
 import static com.mobile.server.domain.mission.e.MissionStatus.CLOSED;
 import static com.mobile.server.domain.mission.e.MissionStatus.OPEN;
 import static com.mobile.server.domain.mission.e.MissionType.EVENT;
+import static com.mobile.server.domain.mission.e.MissionType.SCHEDULED;
 import static com.mobile.server.domain.missionParticipation.domain.MissionParticipation.builder;
 import static com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus.APPROVED;
 import static com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus.PENDING;
@@ -794,6 +795,73 @@ class MissionManagementControllerTest {
 
         // when & then
         mockMvc.perform(patch("/api/admin/missions/{missionId}/early-close", mission.getId())
+                        .with(user(new CustomUserDetails(user1)))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("성공: 관리자 계정이 전체 미션 조회에 성공한다.")
+    void getAllMission_success() throws Exception {
+        // given
+        missionRepository.save(Mission.builder()
+                .title("미션 1")
+                .content("미션 1 내용")
+                .missionPoint(10L)
+                .missionType(EVENT)
+                .startDate(LocalDate.now())
+                .deadLine(LocalDate.now().plusDays(2))
+                .iconUrl("https://s3/icon.png")
+                .bannerUrl("https://s3/banner.png")
+                .status(OPEN)
+                .category("publicTransportation")
+                .build());
+
+        missionRepository.save(Mission.builder()
+                .title("미션 2")
+                .content("미션 2 내용")
+                .missionPoint(30L)
+                .missionType(SCHEDULED)
+                .startDate(LocalDate.now())
+                .deadLine(LocalDate.now())
+                .iconUrl("https://s3/icon.png")
+                .bannerUrl("https://s3/banner.png")
+                .status(OPEN)
+                .category("publicTransportation")
+                .build());
+
+        // when & then
+        mockMvc.perform(get("/api/admin/missions")
+                        .with(user(new CustomUserDetails(admin)))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andDo(result -> {
+                    String response = result.getResponse().getContentAsString();
+                    Assertions.assertThat(response).contains("미션 1");
+                    Assertions.assertThat(response).contains("미션 2");
+                });
+    }
+
+
+    @Test
+    @DisplayName("실패: 일반 사용자가 전체 미션 조회 요청 시 권한 예외 발생")
+    void getAllMission_fail_forbidden() throws Exception {
+        // given
+        missionRepository.save(Mission.builder()
+                .title("미션 1")
+                .content("미션 1 내용")
+                .missionPoint(10L)
+                .missionType(EVENT)
+                .startDate(LocalDate.now())
+                .deadLine(LocalDate.now().plusDays(2))
+                .iconUrl("https://s3/icon.png")
+                .bannerUrl("https://s3/banner.png")
+                .status(OPEN)
+                .category("publicTransportation")
+                .build());
+
+        // when & then
+        mockMvc.perform(get("/api/admin/missions")
                         .with(user(new CustomUserDetails(user1)))
                         .with(csrf()))
                 .andExpect(status().isForbidden());

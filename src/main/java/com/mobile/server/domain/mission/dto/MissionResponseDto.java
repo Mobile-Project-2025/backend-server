@@ -13,7 +13,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Schema(description = "마감 미션 응답 DTO")
+@Schema(description = "미션 조회 응답 DTO")
 @Builder
 public class MissionResponseDto {
 
