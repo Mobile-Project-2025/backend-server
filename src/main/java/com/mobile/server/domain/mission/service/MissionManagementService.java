@@ -91,6 +91,13 @@ public class MissionManagementService {
         return makeUniqueMissionResponseList(uniquePendingMission);
     }
 
+    public List<MissionResponseDto> getAllMission(Long userId) {
+        isAdmin(userId);
+        List<Mission> allMission = makeAllMission();
+        return makeUniqueMissionResponseList(new HashSet<>(allMission));
+    }
+
+
     public List<CategoryResponseDto> getCategoryNameList(Long userId) {
         isAdmin(userId);
         return Arrays.stream(MissionCategory.values())
@@ -150,6 +157,11 @@ public class MissionManagementService {
         isOpenMission(mission);
         mission.closeMission();
     }
+
+    private List<Mission> makeAllMission() {
+        return missionRepository.findAll();
+    }
+
 
     private void isOpenMission(Mission mission) {
         if (mission.getStatus().equals(MissionStatus.CLOSED)) {

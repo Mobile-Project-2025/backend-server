@@ -220,4 +220,22 @@ public class MissionManagementController {
     }
 
 
+    @Operation(
+            summary = "전체 미션 조회",
+            description = "관리자가 생성된 전체 미션을 조회한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 조회됨.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MissionResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping()
+    public ResponseEntity<List<MissionResponseDto>> getAllMission(
+            @AuthenticationPrincipal CustomUserDetails userInformation) {
+        List<MissionResponseDto> result = managementService.getAllMission(userInformation.getUserId());
+        return ResponseEntity.ok(result);
+    }
+
+
 }
