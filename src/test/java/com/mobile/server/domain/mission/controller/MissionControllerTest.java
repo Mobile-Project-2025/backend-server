@@ -8,6 +8,9 @@ import com.mobile.server.domain.mission.domain.Mission;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import com.mobile.server.domain.mission.repository.MissionRepository;
+import com.mobile.server.domain.missionParticipation.domain.MissionParticipation;
+import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
+import com.mobile.server.domain.missionParticipation.repository.MissionParticipationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,6 +42,9 @@ class MissionControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MissionParticipationRepository missionParticipationRepository;
 
     private User testUser;
     private CustomUserDetails userDetails;
@@ -211,5 +217,150 @@ class MissionControllerTest {
                 .andExpect(jsonPath("$[0].title").value("OPEN 돌발 미션"))
                 .andExpect(jsonPath("$[0].participationCount").value(5));
     }
-}
 
+    @Test
+    @DisplayName("미션 상세 조회 성공 - 제출하지 않은 상시 미션")
+    void getMissionDetail_NotSubmitted_Success() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("텀블러 사용하기")
+                .content("개인 텀블러를 사용하여 일회용 컵 사용을 줄여주세요.")
+                .missionPoint(100L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 18))
+                .deadLine(LocalDate.of(2025, 11, 25))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("TUMBLER")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        // when & then
+        mockMvc.perform(get("/api/missions/" + savedMission.getId())
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.missionId").value(savedMission.getId()))
+                .andExpect(jsonPath("$.title").value("텀블러 사용하기"))
+                .andExpect(jsonPath("$.content").value("개인 텀블러를 사용하여 일회용 컵 사용을 줄여주세요."))
+                .andExpect(jsonPath("$.missionPoint").value(100))
+                .andExpect(jsonPath("$.category").value("TUMBLER"))
+                .andExpect(jsonPath("$.startDate").value("2025-11-18"))
+                .andExpect(jsonPath("$.deadLine").value("2025-11-25"))
+                .andExpect(jsonPath("$.missionType").value("SCHEDULED"))
+                .andExpect(jsonPath("$.status").value("OPEN"))
+                .andExpect(jsonPath("$.participationCount").doesNotExist())
+                .andExpect(jsonPath("$.hasSubmitted").value(false));
+    }
+
+    @Test
+    @DisplayName("미션 상세 조회 성공 - 제출한 상시 미션")
+    void getMissionDetail_AlreadySubmitted_Success() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("분리수거하기")
+                .content("재활용품을 올바르게 분리배출해주세요.")
+                .missionPoint(150L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 18))
+                .deadLine(LocalDate.of(2025, 11, 30))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/d02cd5a5-4469-4efb-bf7e-1191a3594383.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("RECYCLING")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        // 미션 제출 기록 생성
+        MissionParticipation participation = MissionParticipation.builder()
+                .mission(savedMission)
+                .user(testUser)
+                .participationStatus(MissionParticipationStatus.PENDING)
+                .build();
+        missionParticipationRepository.save(participation);
+
+        // when & then
+        mockMvc.perform(get("/api/missions/" + savedMission.getId())
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.missionId").value(savedMission.getId()))
+                .andExpect(jsonPath("$.title").value("분리수거하기"))
+                .andExpect(jsonPath("$.hasSubmitted").value(true));
+    }
+
+    @Test
+    @DisplayName("미션 상세 조회 성공 - 돌발 미션 (participationCount 포함)")
+    void getMissionDetail_EventMission_Success() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("캠퍼스 클린업 이벤트")
+                .content("캠퍼스 내 쓰레기를 주워주세요.")
+                .missionPoint(300L)
+                .missionType(MissionType.EVENT)
+                .startDate(LocalDate.of(2025, 11, 18))
+                .deadLine(LocalDate.of(2025, 11, 20))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/2351f119-f70f-461e-b552-abdb621cffe1.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/537500d1-4fe2-4f06-9cf3-38e46ed87d64.png")
+                .status(MissionStatus.OPEN)
+                .category("ETC")
+                .participationCount(25)
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        // when & then
+        mockMvc.perform(get("/api/missions/" + savedMission.getId())
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.missionId").value(savedMission.getId()))
+                .andExpect(jsonPath("$.title").value("캠퍼스 클린업 이벤트"))
+                .andExpect(jsonPath("$.missionType").value("EVENT"))
+                .andExpect(jsonPath("$.participationCount").value(25))
+                .andExpect(jsonPath("$.hasSubmitted").value(false));
+    }
+
+    @Test
+    @DisplayName("미션 상세 조회 실패 - 존재하지 않는 미션")
+    void getMissionDetail_NotFound() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/missions/99999")
+                        .with(user(userDetails)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("미션 상세 조회 실패 - STUDENT 권한 없음")
+    void getMissionDetail_Forbidden() throws Exception {
+        // given
+        User adminUser = User.builder()
+                .studentId("20251119")
+                .password("password")
+                .nickname("관리자")
+                .role(RoleType.ADMIN)
+                .build();
+        adminUser = userRepository.save(adminUser);
+        CustomUserDetails adminDetails = new CustomUserDetails(adminUser);
+
+        Mission mission = Mission.builder()
+                .title("테스트 미션")
+                .content("내용")
+                .missionPoint(100L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 18))
+                .deadLine(LocalDate.of(2025, 11, 25))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("TUMBLER")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        // when & then
+        mockMvc.perform(get("/api/missions/" + savedMission.getId())
+                        .with(user(adminDetails)))
+                .andExpect(status().isForbidden());
+    }
+}
