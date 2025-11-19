@@ -3,6 +3,7 @@ package com.mobile.server.domain.mission.controller;
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
 import com.mobile.server.domain.mission.dto.MissionDetailDto;
 import com.mobile.server.domain.mission.dto.MissionResponseDto;
+import com.mobile.server.domain.mission.dto.MissionSubmitResponseDto;
 import com.mobile.server.domain.mission.service.MissionManagementService;
 import com.mobile.server.domain.mission.service.MissionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,8 +22,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/missions")
@@ -203,6 +208,79 @@ public class MissionController {
             @Parameter(description = "미션 ID", required = true) @PathVariable Long missionId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         MissionDetailDto result = missionService.getMissionDetail(userDetails.getUserId(), missionId);
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "미션 제출",
+            description = "미션을 완료하고 인증 사진과 함께 제출합니다. STUDENT 권한이 필요합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "미션 제출 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = MissionSubmitResponseDto.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "participationId": 1,
+                                      "message": "미션이 성공적으로 제출되었습니다.",
+                                      "submittedAt": "2025-11-18T14:30:00"
+                                    }
+                                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (중복 제출, 마감된 미션 등)",
+                    content = @Content(mediaType = "application/problem+json",
+                            examples = {
+                                    @ExampleObject(name = "중복 제출", value = """
+                                            {
+                                              "type": "about:blank",
+                                              "title": "Bad Request",
+                                              "status": 400,
+                                              "detail": "이미 제출한 미션입니다.",
+                                              "instance": "/api/missions/1/submit"
+                                            }
+                                            """),
+                                    @ExampleObject(name = "마감된 미션", value = """
+                                            {
+                                              "type": "about:blank",
+                                              "title": "Bad Request",
+                                              "status": 400,
+                                              "detail": "요청하신 미션은 이미 마감되었습니다.",
+                                              "instance": "/api/missions/1/submit"
+                                            }
+                                            """)
+                            })),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (STUDENT가 아닌 경우)",
+                    content = @Content(mediaType = "application/problem+json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "type": "about:blank",
+                                      "title": "Forbidden",
+                                      "status": 403,
+                                      "detail": "사용자는 해당 기능을 사용할 수 없습니다.",
+                                      "instance": "/api/missions/1/submit"
+                                    }
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "미션을 찾을 수 없음",
+                    content = @Content(mediaType = "application/problem+json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "type": "about:blank",
+                                      "title": "Not Found",
+                                      "status": 404,
+                                      "detail": "요청하신 미션은 존재하지 않습니다.",
+                                      "instance": "/api/missions/999/submit"
+                                    }
+                                    """)))
+    })
+    @PostMapping(value = "/{missionId}/submit", consumes = "multipart/form-data")
+    @RequestBody(content = @Content(mediaType = "multipart/form-data"))
+    public ResponseEntity<MissionSubmitResponseDto> submitMission(
+            @Parameter(description = "미션 ID", required = true) @PathVariable Long missionId,
+            @Parameter(description = "인증 사진", required = true) @RequestPart("photo") MultipartFile photo,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        MissionSubmitResponseDto result = missionService.submitMission(
+                userDetails.getUserId(), missionId, photo);
         return ResponseEntity.ok(result);
     }
 }
