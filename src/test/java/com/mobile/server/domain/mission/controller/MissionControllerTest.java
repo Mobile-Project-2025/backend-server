@@ -1,5 +1,6 @@
 package com.mobile.server.domain.mission.controller;
 
+import com.mobile.server.config.FakeS3Uploader;
 import com.mobile.server.domain.auth.entity.RoleType;
 import com.mobile.server.domain.auth.entity.User;
 import com.mobile.server.domain.auth.jwt.CustomUserDetails;
@@ -11,12 +12,14 @@ import com.mobile.server.domain.mission.repository.MissionRepository;
 import com.mobile.server.domain.missionParticipation.domain.MissionParticipation;
 import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
 import com.mobile.server.domain.missionParticipation.repository.MissionParticipationRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import java.time.LocalDate;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,6 +50,9 @@ class MissionControllerTest {
     @Autowired
     private MissionParticipationRepository missionParticipationRepository;
 
+    @Autowired
+    private FakeS3Uploader fakeS3Uploader;
+
     private User testUser;
     private CustomUserDetails userDetails;
 
@@ -59,6 +66,11 @@ class MissionControllerTest {
                 .build();
         testUser = userRepository.save(testUser);
         userDetails = new CustomUserDetails(testUser);
+    }
+
+    @AfterEach
+    void tearDown() {
+        fakeS3Uploader.clearStorage();
     }
 
     @Test
@@ -360,6 +372,213 @@ class MissionControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/missions/" + savedMission.getId())
+                        .with(user(adminDetails)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("미션 제출 성공 - 상시 미션")
+    void submitMission_Scheduled_Success() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("텀블러 사용하기")
+                .content("개인 텀블러를 사용하여 일회용 컵 사용을 줄여주세요.")
+                .missionPoint(100L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 26))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("TUMBLER")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        MockMultipartFile photo = new MockMultipartFile(
+                "photo",
+                "test-image.jpg",
+                "image/jpeg",
+                "test image content".getBytes()
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/missions/" + savedMission.getId() + "/submit")
+                        .file(photo)
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participationId").exists())
+                .andExpect(jsonPath("$.message").value("미션이 성공적으로 제출되었습니다."))
+                .andExpect(jsonPath("$.submittedAt").exists());
+    }
+
+    @Test
+    @DisplayName("미션 제출 성공 - 돌발 미션")
+    void submitMission_Event_Success() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("캠퍼스 클린업 이벤트")
+                .content("캠퍼스 내 쓰레기를 주워주세요.")
+                .missionPoint(300L)
+                .missionType(MissionType.EVENT)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 21))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/2351f119-f70f-461e-b552-abdb621cffe1.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/537500d1-4fe2-4f06-9cf3-38e46ed87d64.png")
+                .status(MissionStatus.OPEN)
+                .category("ETC")
+                .participationCount(0)
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        MockMultipartFile photo = new MockMultipartFile(
+                "photo",
+                "event-photo.png",
+                "image/png",
+                "event photo content".getBytes()
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/missions/" + savedMission.getId() + "/submit")
+                        .file(photo)
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participationId").exists())
+                .andExpect(jsonPath("$.message").value("미션이 성공적으로 제출되었습니다."))
+                .andExpect(jsonPath("$.submittedAt").exists());
+    }
+
+    @Test
+    @DisplayName("미션 제출 실패 - 이미 제출한 미션")
+    void submitMission_AlreadySubmitted_Fail() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("분리수거하기")
+                .content("재활용품을 올바르게 분리배출해주세요.")
+                .missionPoint(150L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 30))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/d02cd5a5-4469-4efb-bf7e-1191a3594383.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("RECYCLING")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        // 이미 제출한 기록 생성
+        MissionParticipation participation = MissionParticipation.builder()
+                .mission(savedMission)
+                .user(testUser)
+                .participationStatus(MissionParticipationStatus.PENDING)
+                .build();
+        missionParticipationRepository.save(participation);
+
+        MockMultipartFile photo = new MockMultipartFile(
+                "photo",
+                "duplicate.jpg",
+                "image/jpeg",
+                "duplicate image content".getBytes()
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/missions/" + savedMission.getId() + "/submit")
+                        .file(photo)
+                        .with(user(userDetails)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("미션 제출 실패 - 마감된 미션")
+    void submitMission_ClosedMission_Fail() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("마감된 미션")
+                .content("마감된 미션입니다.")
+                .missionPoint(100L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 10))
+                .deadLine(LocalDate.of(2025, 11, 18))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.CLOSED)
+                .category("TUMBLER")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        MockMultipartFile photo = new MockMultipartFile(
+                "photo",
+                "late.jpg",
+                "image/jpeg",
+                "late image content".getBytes()
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/missions/" + savedMission.getId() + "/submit")
+                        .file(photo)
+                        .with(user(userDetails)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("미션 제출 실패 - 존재하지 않는 미션")
+    void submitMission_NotFound_Fail() throws Exception {
+        // given
+        MockMultipartFile photo = new MockMultipartFile(
+                "photo",
+                "notfound.jpg",
+                "image/jpeg",
+                "notfound image content".getBytes()
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/missions/99999/submit")
+                        .file(photo)
+                        .with(user(userDetails)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("미션 제출 실패 - STUDENT 권한 없음")
+    void submitMission_Forbidden() throws Exception {
+        // given
+        User adminUser = User.builder()
+                .studentId("20251120")
+                .password("password")
+                .nickname("관리자")
+                .role(RoleType.ADMIN)
+                .build();
+        adminUser = userRepository.save(adminUser);
+        CustomUserDetails adminDetails = new CustomUserDetails(adminUser);
+
+        Mission mission = Mission.builder()
+                .title("테스트 미션")
+                .content("내용")
+                .missionPoint(100L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 26))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("TUMBLER")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        MockMultipartFile photo = new MockMultipartFile(
+                "photo",
+                "admin-test.jpg",
+                "image/jpeg",
+                "admin test image content".getBytes()
+        );
+
+        // when & then
+        mockMvc.perform(multipart("/api/missions/" + savedMission.getId() + "/submit")
+                        .file(photo)
                         .with(user(adminDetails)))
                 .andExpect(status().isForbidden());
     }
