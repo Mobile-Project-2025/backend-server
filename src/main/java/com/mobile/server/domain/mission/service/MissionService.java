@@ -8,6 +8,7 @@ import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.domain.Mission;
 import com.mobile.server.domain.mission.dto.MissionDetailDto;
 import com.mobile.server.domain.mission.dto.MissionSubmitResponseDto;
+import com.mobile.server.domain.mission.dto.PendingMissionDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
 import com.mobile.server.domain.mission.repository.MissionRepository;
@@ -18,7 +19,9 @@ import com.mobile.server.util.exception.BusinessErrorCode;
 import com.mobile.server.util.exception.BusinessException;
 import com.mobile.server.util.file.S3Uploader;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,5 +144,40 @@ public class MissionService {
             fileRepository.save(newFile);
             s3Uploader.uploadFile(newFile.getFileKey(), file);
         }
+    }
+
+    public List<PendingMissionDto> getPendingMissions(Long userId) {
+        User user = findUserById(userId);
+        validateStudent(user);
+
+        List<MissionParticipation> pendingParticipations =
+                missionParticipationRepository.findByUserAndParticipationStatusOrderByCreatedAtDesc(
+                        user, MissionParticipationStatus.PENDING);
+
+        return pendingParticipations.stream()
+                .map(this::convertToPendingMissionDto)
+                .collect(Collectors.toList());
+    }
+
+    private PendingMissionDto convertToPendingMissionDto(MissionParticipation participation) {
+        Mission mission = participation.getMission();
+
+        // 제출한 사진 URL 조회
+        String photoUrl = fileRepository.findByParticipationAndIsDeletedFalse(participation)
+                .map(file -> s3Uploader.getUrlFile(file.getFileKey()))
+                .orElse(null);
+
+        return PendingMissionDto.builder()
+                .participationId(participation.getId())
+                .missionId(mission.getId())
+                .title(mission.getTitle())
+                .missionPoint(mission.getMissionPoint())
+                .category(mission.getCategory())
+                .iconImageUrl(mission.getIconUrl())
+                .missionType(mission.getMissionType())
+                .participationStatus(participation.getParticipationStatus())
+                .submittedPhotoUrl(photoUrl)
+                .submittedAt(participation.getCreatedAt())
+                .build();
     }
 }

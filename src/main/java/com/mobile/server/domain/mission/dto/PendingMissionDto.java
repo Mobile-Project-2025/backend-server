@@ -38,6 +38,9 @@ public class PendingMissionDto {
     @Schema(description = "참여 상태 (PENDING: 승인대기, APPROVED: 승인됨, REJECTED: 거부됨)", example = "PENDING")
     private MissionParticipationStatus participationStatus;
 
+    @Schema(description = "제출한 사진 URL", example = "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/participations/abc123.jpg")
+    private String submittedPhotoUrl;
+
     @Schema(description = "제출 일시", example = "2025-11-19T14:30:00")
     private LocalDateTime submittedAt;
 }
