@@ -582,4 +582,158 @@ class MissionControllerTest {
                         .with(user(adminDetails)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("승인 대기 미션 목록 조회 성공")
+    void getPendingMissions_Success() throws Exception {
+        // given
+        Mission mission1 = Mission.builder()
+                .title("텀블러 사용하기")
+                .content("텀블러를 사용하세요")
+                .missionPoint(100L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 26))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("TUMBLER")
+                .build();
+
+        Mission mission2 = Mission.builder()
+                .title("캠퍼스 클린업")
+                .content("캠퍼스를 깨끗하게")
+                .missionPoint(300L)
+                .missionType(MissionType.EVENT)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 21))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/2351f119-f70f-461e-b552-abdb621cffe1.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/537500d1-4fe2-4f06-9cf3-38e46ed87d64.png")
+                .status(MissionStatus.OPEN)
+                .category("ETC")
+                .participationCount(0)
+                .build();
+
+        Mission savedMission1 = missionRepository.save(mission1);
+        Mission savedMission2 = missionRepository.save(mission2);
+
+        // 미션 제출 (PENDING 상태)
+        MissionParticipation participation1 = MissionParticipation.builder()
+                .mission(savedMission1)
+                .user(testUser)
+                .participationStatus(MissionParticipationStatus.PENDING)
+                .build();
+        MissionParticipation savedParticipation1 = missionParticipationRepository.save(participation1);
+
+        MissionParticipation participation2 = MissionParticipation.builder()
+                .mission(savedMission2)
+                .user(testUser)
+                .participationStatus(MissionParticipationStatus.PENDING)
+                .build();
+        MissionParticipation savedParticipation2 = missionParticipationRepository.save(participation2);
+
+        // when & then
+        mockMvc.perform(get("/api/missions/pending")
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].participationId").value(savedParticipation2.getId()))
+                .andExpect(jsonPath("$[0].missionId").value(savedMission2.getId()))
+                .andExpect(jsonPath("$[0].title").value("캠퍼스 클린업"))
+                .andExpect(jsonPath("$[0].missionPoint").value(300))
+                .andExpect(jsonPath("$[0].category").value("ETC"))
+                .andExpect(jsonPath("$[0].missionType").value("EVENT"))
+                .andExpect(jsonPath("$[0].participationStatus").value("PENDING"))
+                .andExpect(jsonPath("$[1].participationId").value(savedParticipation1.getId()))
+                .andExpect(jsonPath("$[1].missionId").value(savedMission1.getId()))
+                .andExpect(jsonPath("$[1].title").value("텀블러 사용하기"))
+                .andExpect(jsonPath("$[1].missionType").value("SCHEDULED"));
+    }
+
+    @Test
+    @DisplayName("승인 대기 미션 목록 조회 - 빈 목록")
+    void getPendingMissions_EmptyList() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/missions/pending")
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("승인 대기 미션 목록 조회 - APPROVED 상태는 조회되지 않음")
+    void getPendingMissions_OnlyPendingStatus() throws Exception {
+        // given
+        Mission mission = Mission.builder()
+                .title("분리수거하기")
+                .content("분리수거를 해주세요")
+                .missionPoint(150L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 30))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/d02cd5a5-4469-4efb-bf7e-1191a3594383.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("RECYCLING")
+                .build();
+
+        Mission savedMission = missionRepository.save(mission);
+
+        // PENDING 상태
+        MissionParticipation pendingParticipation = MissionParticipation.builder()
+                .mission(savedMission)
+                .user(testUser)
+                .participationStatus(MissionParticipationStatus.PENDING)
+                .build();
+        missionParticipationRepository.save(pendingParticipation);
+
+        // APPROVED 상태 (조회되면 안됨)
+        Mission approvedMission = Mission.builder()
+                .title("승인된 미션")
+                .content("승인된 미션")
+                .missionPoint(200L)
+                .missionType(MissionType.SCHEDULED)
+                .startDate(LocalDate.of(2025, 11, 19))
+                .deadLine(LocalDate.of(2025, 11, 30))
+                .iconUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/d02cd5a5-4469-4efb-bf7e-1191a3594383.png")
+                .bannerUrl("https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png")
+                .status(MissionStatus.OPEN)
+                .category("RECYCLING")
+                .build();
+        Mission savedApprovedMission = missionRepository.save(approvedMission);
+
+        MissionParticipation approvedParticipation = MissionParticipation.builder()
+                .mission(savedApprovedMission)
+                .user(testUser)
+                .participationStatus(MissionParticipationStatus.APPROVED)
+                .build();
+        missionParticipationRepository.save(approvedParticipation);
+
+        // when & then
+        mockMvc.perform(get("/api/missions/pending")
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("분리수거하기"))
+                .andExpect(jsonPath("$[0].participationStatus").value("PENDING"));
+    }
+
+    @Test
+    @DisplayName("승인 대기 미션 목록 조회 실패 - STUDENT 권한 없음")
+    void getPendingMissions_Forbidden() throws Exception {
+        // given
+        User adminUser = User.builder()
+                .studentId("20251121")
+                .password("password")
+                .nickname("관리자")
+                .role(RoleType.ADMIN)
+                .build();
+        adminUser = userRepository.save(adminUser);
+        CustomUserDetails adminDetails = new CustomUserDetails(adminUser);
+
+        // when & then
+        mockMvc.perform(get("/api/missions/pending")
+                        .with(user(adminDetails)))
+                .andExpect(status().isForbidden());
+    }
 }
