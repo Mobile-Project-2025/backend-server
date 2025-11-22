@@ -8,6 +8,7 @@ import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.domain.Mission;
 import com.mobile.server.domain.mission.dto.MissionDetailDto;
 import com.mobile.server.domain.mission.dto.MissionSubmitResponseDto;
+import com.mobile.server.domain.mission.dto.ParticipationHistoryDetailDto;
 import com.mobile.server.domain.mission.dto.ParticipationHistoryDto;
 import com.mobile.server.domain.mission.dto.PendingMissionDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
@@ -214,6 +215,51 @@ public class MissionService {
                 .participationCount(mission.getParticipationCount())
                 .participationStatus(participation.getParticipationStatus())
                 .participatedAt(participation.getCreatedAt())
+                .build();
+    }
+
+    public ParticipationHistoryDetailDto getParticipationHistoryDetail(Long userId, Long participationId) {
+        User user = findUserById(userId);
+        validateStudent(user);
+
+        MissionParticipation participation =
+                missionParticipationRepository.findByIdAndUser(participationId, user)
+                        .orElseThrow(() -> new BusinessException(BusinessErrorCode.PARTICIPATION_NOT_FOUND));
+
+        if (participation.getParticipationStatus() == MissionParticipationStatus.PENDING) {
+            throw new BusinessException(BusinessErrorCode.INVALID_PARTICIPATION_STATUS);
+        }
+
+        String submittedPhotoUrl = fileRepository
+                .findByParticipationAndIsDeletedFalse(participation)
+                .map(file -> s3Uploader.getUrlFile(file.getFileKey()))
+                .orElse(null);
+
+        return convertToHistoryDetailDto(participation, submittedPhotoUrl);
+    }
+
+    private ParticipationHistoryDetailDto convertToHistoryDetailDto(
+            MissionParticipation participation,
+            String submittedPhotoUrl
+    ) {
+        Mission mission = participation.getMission();
+
+        return ParticipationHistoryDetailDto.builder()
+                .participationId(participation.getId())
+                .missionId(mission.getId())
+                .title(mission.getTitle())
+                .content(mission.getContent())
+                .bannerUrl(mission.getBannerUrl())
+                .iconUrl(mission.getIconUrl())
+                .missionPoint(mission.getMissionPoint())
+                .participationCount(mission.getParticipationCount())
+                .category(mission.getCategory())
+                .missionType(mission.getMissionType())
+                .participationStatus(participation.getParticipationStatus())
+                .submittedPhotoUrl(submittedPhotoUrl)
+                .participatedAt(participation.getCreatedAt())
+                .startDate(mission.getStartDate())
+                .deadLine(mission.getDeadLine())
                 .build();
     }
 }
