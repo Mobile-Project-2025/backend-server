@@ -70,6 +70,13 @@ public class DataInitializer implements ApplicationRunner {
                 .build();
         userRepository.save(testUser1);
 
+        User testUser2 = User.builder().nickname("임시 테스트 계정")
+                .studentId("11112222").password(passwordEncoder.encode("password"))
+                .role(RoleType.STUDENT)
+                .cumulativePoint(10L)
+                .build();
+        userRepository.save(testUser2);
+
         // 승인 대기 미션 (진행 중인 미션)
         Mission mission1 = Mission.builder().title("대중교통 이용하고 지구 지키기")
                 .content("출퇴근길 자가용 대신 버스나 지하철을 이용해보세요.\n탄소 배출을 줄이고 맑은 공기를 되찾을 수 있습니다.\n대중교통 이용 인증샷을 올려주세요!")
@@ -84,7 +91,7 @@ public class DataInitializer implements ApplicationRunner {
         File file1 = File.ofMission(mission1, new FileDetailDto("test.jpg", "test.jpg", "jpg", 30L));
         fileRepository.save(file1);
 
-// 미션 1번에 대한 참여 (승인 대기 중)
+// 미션 1번에 대한 참여 (승인 대기 중) -> 유저 1
         MissionParticipation testUserParticipation1 = MissionParticipation.builder()
                 .participationStatus(MissionParticipationStatus.PENDING)
                 .mission(mission1).user(testUser1).build();
@@ -92,6 +99,15 @@ public class DataInitializer implements ApplicationRunner {
         File file2 = File.ofParticipation(testUserParticipation1,
                 new FileDetailDto("submission.jpg", "submission.jpg", "jpg", 30L));
         fileRepository.save(file2);
+
+        //미션 1번에 대한 참여(승인 대기 중) -> 유저 2
+        MissionParticipation testUserParticipation3 = MissionParticipation.builder()
+                .participationStatus(MissionParticipationStatus.PENDING)
+                .mission(mission1).user(testUser2).build();
+        missionParticipationRepository.save(testUserParticipation3);
+        File file3 = File.ofParticipation(testUserParticipation3,
+                new FileDetailDto("test12.jpg", "test12.jpg", "jpg", 30L));
+        fileRepository.save(file3);
 
 // 마감된 미션 (제출 완료)
         Mission mission2 = Mission.builder().title("일회용 컵 대신 텀블러 사용하기").content(
@@ -104,17 +120,26 @@ public class DataInitializer implements ApplicationRunner {
                 .bannerUrl(FileResourceMap.BANNER_MAP.get(MissionType.SCHEDULED.name()))
                 .participationCount(0).build();
         missionRepository.save(mission2);
-        File file3 = File.ofMission(mission2, new FileDetailDto("test1.jpg", "test1.jpg", "jpg", 30L));
-        fileRepository.save(file3);
+        File file4 = File.ofMission(mission2, new FileDetailDto("test1.jpg", "test1.jpg", "jpg", 30L));
+        fileRepository.save(file4);
 
 // 마감된 미션에 참여한 제출 완료 유저
         MissionParticipation testUserParticipation2 = MissionParticipation.builder()
                 .participationStatus(MissionParticipationStatus.PENDING) // 제출 상태
                 .mission(mission2).user(testUser1).build();
         missionParticipationRepository.save(testUserParticipation2);
-        File file4 = File.ofParticipation(testUserParticipation2,
+        File file5 = File.ofParticipation(testUserParticipation2,
                 new FileDetailDto("test2.jpg", "test2.jpg", "jpg", 30L)); // 제출 파일
-        fileRepository.save(file4);
+        fileRepository.save(file5);
+
+        //미션 2번에 대한 참여(승인 대기 중)
+        MissionParticipation testUserParticipation4 = MissionParticipation.builder()
+                .participationStatus(MissionParticipationStatus.PENDING)
+                .mission(mission2).user(testUser2).build();
+        missionParticipationRepository.save(testUserParticipation4);
+        File file6 = File.ofParticipation(testUserParticipation4,
+                new FileDetailDto("test13.jpg", "test13.jpg", "jpg", 30L));
+        fileRepository.save(file6);
 
 // 완료된 미션 (제출하지 않음)
         Mission mission3 = Mission.builder().title("안 쓰는 플러그 뽑기 챌린지")
@@ -127,8 +152,8 @@ public class DataInitializer implements ApplicationRunner {
                 .bannerUrl(FileResourceMap.BANNER_MAP.get(MissionType.EVENT.name()))
                 .participationCount(0).build();
         missionRepository.save(mission3);
-        File file6 = File.ofMission(mission3, new FileDetailDto("test4.jpg", "test4.jpg", "jpg", 30L));
-        fileRepository.save(file6);
+        File file7 = File.ofMission(mission3, new FileDetailDto("test4.jpg", "test4.jpg", "jpg", 30L));
+        fileRepository.save(file7);
 
 // 고정 미션
         Mission mission4 = Mission.builder().title("장바구니 이용하고 비닐 줄이기")
@@ -141,8 +166,8 @@ public class DataInitializer implements ApplicationRunner {
                 .bannerUrl(FileResourceMap.BANNER_MAP.get(MissionType.SCHEDULED.name()))
                 .participationCount(0).build();
         missionRepository.save(mission4);
-        File file7 = File.ofMission(mission4, new FileDetailDto("test6.jpg", "test6.jpg", "jpg", 30L));
-        fileRepository.save(file7);
+        File file8 = File.ofMission(mission4, new FileDetailDto("test6.jpg", "test6.jpg", "jpg", 30L));
+        fileRepository.save(file8);
 
 // 관리자 승인 대기 미션 (완전 종료됨)
         Mission mission5 = Mission.builder().title("자전거로 출퇴근하기")
@@ -155,8 +180,8 @@ public class DataInitializer implements ApplicationRunner {
                 .bannerUrl(FileResourceMap.BANNER_MAP.get(MissionType.EVENT.name()))
                 .participationCount(0).build();
         missionRepository.save(mission5);
-        File file8 = File.ofMission(mission5, new FileDetailDto("test7.jpg", "test7.jpg", "jpg", 30L));
-        fileRepository.save(file8);
+        File file9 = File.ofMission(mission5, new FileDetailDto("test7.jpg", "test7.jpg", "jpg", 30L));
+        fileRepository.save(file9);
 
 // 상시 미션
         Mission mission6 = Mission.builder().title("올바른 투명 페트병 분리배출")
@@ -169,8 +194,8 @@ public class DataInitializer implements ApplicationRunner {
                 .bannerUrl(FileResourceMap.BANNER_MAP.get(MissionType.SCHEDULED.name()))
                 .participationCount(0).build();
         missionRepository.save(mission6);
-        File file9 = File.ofMission(mission6, new FileDetailDto("test8.jpg", "test8.jpg", "jpg", 30L));
-        fileRepository.save(file9);
+        File file10 = File.ofMission(mission6, new FileDetailDto("test8.jpg", "test8.jpg", "jpg", 30L));
+        fileRepository.save(file10);
 
 // 상시 미션2
         Mission mission7 = Mission.builder().title("배달 음식 주문 시 일회용품 거절")
@@ -183,8 +208,8 @@ public class DataInitializer implements ApplicationRunner {
                 .bannerUrl(FileResourceMap.BANNER_MAP.get(MissionType.SCHEDULED.name()))
                 .participationCount(0).build();
         missionRepository.save(mission7);
-        File file10 = File.ofMission(mission7, new FileDetailDto("test10.jpg", "test10.jpg", "jpg", 30L));
-        fileRepository.save(file10);
+        File file11 = File.ofMission(mission7, new FileDetailDto("test10.jpg", "test10.jpg", "jpg", 30L));
+        fileRepository.save(file11);
 
 //돌발 미션
         Mission mission8 = Mission.builder().title("잔반 없는 날! 빈 그릇 인증")
@@ -197,8 +222,8 @@ public class DataInitializer implements ApplicationRunner {
                 .bannerUrl(FileResourceMap.BANNER_MAP.get(MissionType.EVENT.name()))
                 .participationCount(0).build();
         missionRepository.save(mission8);
-        File file11 = File.ofMission(mission8, new FileDetailDto("test11.jpg", "test11.jpg", "jpg", 30L));
-        fileRepository.save(file11);
+        File file12 = File.ofMission(mission8, new FileDetailDto("test11.jpg", "test11.jpg", "jpg", 30L));
+        fileRepository.save(file12);
 
     }
 }
