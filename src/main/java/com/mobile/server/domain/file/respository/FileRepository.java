@@ -2,8 +2,10 @@ package com.mobile.server.domain.file.respository;
 
 import com.mobile.server.domain.file.domain.File;
 import com.mobile.server.domain.mission.dto.MissionParticipationFileDto;
+import com.mobile.server.domain.missionParticipation.domain.MissionParticipation;
 import com.mobile.server.domain.missionParticipation.eum.MissionParticipationStatus;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,5 +27,6 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("missionId") Long missionId
     );
 
+    Optional<File> findByParticipationAndIsDeletedFalse(MissionParticipation participation);
 
 }
