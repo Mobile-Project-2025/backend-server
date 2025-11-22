@@ -17,4 +17,9 @@ public interface MissionParticipationRepository extends JpaRepository<MissionPar
     List<MissionParticipation> findByUserAndParticipationStatusOrderByCreatedAtDesc(
             User user, MissionParticipationStatus status);
 
+    List<MissionParticipation> findByUserAndParticipationStatusInOrderByCreatedAtDesc(
+            User user, List<MissionParticipationStatus> statuses);
+
+    Optional<MissionParticipation> findByIdAndUser(Long id, User user);
+
 }
