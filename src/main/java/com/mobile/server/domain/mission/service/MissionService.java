@@ -8,6 +8,7 @@ import com.mobile.server.domain.file.respository.FileRepository;
 import com.mobile.server.domain.mission.domain.Mission;
 import com.mobile.server.domain.mission.dto.MissionDetailDto;
 import com.mobile.server.domain.mission.dto.MissionSubmitResponseDto;
+import com.mobile.server.domain.mission.dto.ParticipationHistoryDto;
 import com.mobile.server.domain.mission.dto.PendingMissionDto;
 import com.mobile.server.domain.mission.e.MissionStatus;
 import com.mobile.server.domain.mission.e.MissionType;
@@ -19,6 +20,7 @@ import com.mobile.server.util.exception.BusinessErrorCode;
 import com.mobile.server.util.exception.BusinessException;
 import com.mobile.server.util.file.S3Uploader;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -178,6 +180,40 @@ public class MissionService {
                 .participationStatus(participation.getParticipationStatus())
                 .submittedPhotoUrl(photoUrl)
                 .submittedAt(participation.getCreatedAt())
+                .build();
+    }
+
+    public List<ParticipationHistoryDto> getParticipationHistory(Long userId) {
+        User user = findUserById(userId);
+        validateStudent(user);
+
+        List<MissionParticipationStatus> statuses = Arrays.asList(
+                MissionParticipationStatus.APPROVED,
+                MissionParticipationStatus.REJECTED
+        );
+
+        List<MissionParticipation> participations =
+                missionParticipationRepository.findByUserAndParticipationStatusInOrderByCreatedAtDesc(
+                        user, statuses);
+
+        return participations.stream()
+                .map(this::convertToHistoryDto)
+                .collect(Collectors.toList());
+    }
+
+    private ParticipationHistoryDto convertToHistoryDto(MissionParticipation participation) {
+        Mission mission = participation.getMission();
+
+        return ParticipationHistoryDto.builder()
+                .participationId(participation.getId())
+                .missionId(mission.getId())
+                .title(mission.getTitle())
+                .bannerUrl(mission.getBannerUrl())
+                .iconUrl(mission.getIconUrl())
+                .missionPoint(mission.getMissionPoint())
+                .participationCount(mission.getParticipationCount())
+                .participationStatus(participation.getParticipationStatus())
+                .participatedAt(participation.getCreatedAt())
                 .build();
     }
 }
