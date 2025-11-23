@@ -153,7 +153,7 @@ public class MissionService {
         validateStudent(user);
 
         List<MissionParticipation> pendingParticipations =
-                missionParticipationRepository.findByUserAndParticipationStatusOrderByCreatedAtDesc(
+                missionParticipationRepository.findByUserAndParticipationStatusOrderByIdDesc(
                         user, MissionParticipationStatus.PENDING);
 
         return pendingParticipations.stream()
@@ -188,7 +188,7 @@ public class MissionService {
         validateStudent(user);
 
         List<MissionParticipation> participations =
-                missionParticipationRepository.findByUserOrderByCreatedAtDesc(user);
+                missionParticipationRepository.findByUserOrderByIdDesc(user);
 
         return participations.stream()
                 .map(this::convertToHistoryDto)

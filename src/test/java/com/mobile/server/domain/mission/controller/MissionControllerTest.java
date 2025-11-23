@@ -885,8 +885,8 @@ class MissionControllerTest {
     }
 
     @Test
-    @DisplayName("과거 미션 참여 이력 조회 - 최신순 정렬")
-    void getParticipationHistory_OrderByCreatedAtDesc() throws Exception {
+    @DisplayName("과거 미션 참여 이력 조회 - 최신순 정렬 (ID 기준)")
+    void getParticipationHistory_OrderByIdDesc() throws Exception {
         // given
         Mission mission1 = Mission.builder()
                 .title("오래된 미션")
@@ -935,6 +935,7 @@ class MissionControllerTest {
         Mission savedMission3 = missionRepository.save(mission3);
 
         // 참여 이력 생성 (생성 순서: mission1 -> mission2 -> mission3)
+        // ID는 자동 증가하므로 participation3이 가장 큰 ID를 가짐
         MissionParticipation participation1 = MissionParticipation.builder()
                 .mission(savedMission1)
                 .user(testUser)
@@ -956,7 +957,7 @@ class MissionControllerTest {
                 .build();
         missionParticipationRepository.save(participation3);
 
-        // when & then (최신순: mission3 -> mission2 -> mission1)
+        // when & then (최신순: ID 내림차순 - mission3 -> mission2 -> mission1)
         mockMvc.perform(get("/api/missions/history")
                         .with(user(userDetails)))
                 .andExpect(status().isOk())
