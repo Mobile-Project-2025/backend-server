@@ -75,4 +75,12 @@ public class UserService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
         return new ProfileResponseDto(user.getNickname(), user.getCumulativePoint());
     }
+
+    //포인트 수정
+    @Transactional
+    public void updatePoint(Long userId, Long newPoint) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
+        user.updatePoint(newPoint);
+    }
 }
