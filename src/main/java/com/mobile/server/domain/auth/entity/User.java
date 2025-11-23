@@ -56,4 +56,8 @@ public class User extends BaseCreatedEntity {
         cumulativePoint += rewardPoint;
     }
 
+    public void updatePoint(Long point) {
+        this.cumulativePoint = point;
+    }
+
 }
