@@ -357,7 +357,7 @@ public class MissionController {
 
     @Operation(
             summary = "과거 미션 참여 이력 조회",
-            description = "유저가 참여한 과거 미션 목록을 조회합니다. 승인(APPROVED) 또는 반려(REJECTED)된 미션만 표시되며, 최신순으로 정렬됩니다. STUDENT 권한이 필요합니다."
+            description = "유저가 참여한 모든 미션 목록을 조회합니다. 승인 대기(PENDING), 승인(APPROVED), 반려(REJECTED) 상태를 모두 포함하며, 최신순으로 정렬됩니다. STUDENT 권한이 필요합니다."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "과거 미션 참여 이력 조회 성공",
@@ -423,7 +423,7 @@ public class MissionController {
 
     @Operation(
             summary = "과거 미션 참여 이력 상세 조회",
-            description = "특정 미션 참여 이력의 상세 정보를 조회합니다. 제출한 사진, 미션 내용 등 추가 정보가 포함됩니다. 승인 대기 중(PENDING) 상태는 조회할 수 없습니다. STUDENT 권한이 필요합니다."
+            description = "특정 미션 참여 이력의 상세 정보를 조회합니다. 제출한 사진, 미션 내용 등 추가 정보가 포함됩니다. 모든 참여 상태(PENDING, APPROVED, REJECTED)를 조회할 수 있습니다. STUDENT 권한이 필요합니다."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "과거 미션 참여 이력 상세 조회 성공",
@@ -450,17 +450,6 @@ public class MissionController {
                                     """)
                     )
             ),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (PENDING 상태 조회 시도)",
-                    content = @Content(mediaType = "application/problem+json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "type": "about:blank",
-                                      "title": "Bad Request",
-                                      "status": 400,
-                                      "detail": "승인 대기 중인 참여 이력은 조회할 수 없습니다.",
-                                      "instance": "/api/missions/history/15"
-                                    }
-                                    """))),
             @ApiResponse(responseCode = "403", description = "권한 없음 (STUDENT가 아닌 경우)",
                     content = @Content(mediaType = "application/problem+json",
                             examples = @ExampleObject(value = """
