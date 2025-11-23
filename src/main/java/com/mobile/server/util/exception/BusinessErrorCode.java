@@ -20,7 +20,6 @@ public enum BusinessErrorCode {
     INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "요청하신 카테고리는 존재하지 않습니다"),
     MISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 미션은 존재하지 않습니다."),
     PARTICIPATION_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 참여는 유효하지 않습니다."),
-    INVALID_PARTICIPATION_STATUS(HttpStatus.BAD_REQUEST, "승인 대기 중인 참여 이력은 조회할 수 없습니다."),
     ALREADY_CLOSED_MISSION(HttpStatus.BAD_REQUEST, "요청하신 미션은 이미 마감되었습니다."),
     DUPLICATE_MISSION_SUBMISSION(HttpStatus.BAD_REQUEST, "이미 제출한 미션입니다."),
     DUPLICATE_STUDENT_ID(HttpStatus.CONFLICT, "이미 사용 중인 학번입니다."),

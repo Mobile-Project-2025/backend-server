@@ -21,7 +21,6 @@ import com.mobile.server.util.exception.BusinessErrorCode;
 import com.mobile.server.util.exception.BusinessException;
 import com.mobile.server.util.file.S3Uploader;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -188,14 +187,8 @@ public class MissionService {
         User user = findUserById(userId);
         validateStudent(user);
 
-        List<MissionParticipationStatus> statuses = Arrays.asList(
-                MissionParticipationStatus.APPROVED,
-                MissionParticipationStatus.REJECTED
-        );
-
         List<MissionParticipation> participations =
-                missionParticipationRepository.findByUserAndParticipationStatusInOrderByCreatedAtDesc(
-                        user, statuses);
+                missionParticipationRepository.findByUserOrderByCreatedAtDesc(user);
 
         return participations.stream()
                 .map(this::convertToHistoryDto)
@@ -226,9 +219,6 @@ public class MissionService {
                 missionParticipationRepository.findByIdAndUser(participationId, user)
                         .orElseThrow(() -> new BusinessException(BusinessErrorCode.PARTICIPATION_NOT_FOUND));
 
-        if (participation.getParticipationStatus() == MissionParticipationStatus.PENDING) {
-            throw new BusinessException(BusinessErrorCode.INVALID_PARTICIPATION_STATUS);
-        }
 
         String submittedPhotoUrl = fileRepository
                 .findByParticipationAndIsDeletedFalse(participation)

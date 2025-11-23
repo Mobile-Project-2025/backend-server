@@ -823,8 +823,8 @@ class MissionControllerTest {
     }
 
     @Test
-    @DisplayName("과거 미션 참여 이력 조회 - PENDING 상태는 조회되지 않음")
-    void getParticipationHistory_OnlyApprovedAndRejected() throws Exception {
+    @DisplayName("과거 미션 참여 이력 조회")
+    void getParticipationHistory_AllStatuses() throws Exception {
         // given
         Mission mission1 = Mission.builder()
                 .title("승인된 미션")
@@ -857,7 +857,7 @@ class MissionControllerTest {
         Mission savedMission1 = missionRepository.save(mission1);
         Mission savedMission2 = missionRepository.save(mission2);
 
-        // APPROVED 참여 이력 (조회되어야 함)
+        // APPROVED 참여 이력
         MissionParticipation participation1 = MissionParticipation.builder()
                 .mission(savedMission1)
                 .user(testUser)
@@ -865,7 +865,7 @@ class MissionControllerTest {
                 .build();
         missionParticipationRepository.save(participation1);
 
-        // PENDING 참여 이력 (조회되면 안됨)
+        // PENDING 참여 이력 (이제 조회되어야 함)
         MissionParticipation participation2 = MissionParticipation.builder()
                 .mission(savedMission2)
                 .user(testUser)
@@ -877,9 +877,11 @@ class MissionControllerTest {
         mockMvc.perform(get("/api/missions/history")
                         .with(user(userDetails)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].title").value("승인된 미션"))
-                .andExpect(jsonPath("$[0].participationStatus").value("APPROVED"));
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].title").value("대기중인 미션"))
+                .andExpect(jsonPath("$[0].participationStatus").value("PENDING"))
+                .andExpect(jsonPath("$[1].title").value("승인된 미션"))
+                .andExpect(jsonPath("$[1].participationStatus").value("APPROVED"));
     }
 
     @Test
@@ -1119,8 +1121,8 @@ class MissionControllerTest {
     }
 
     @Test
-    @DisplayName("과거 미션 참여 이력 상세 조회 실패 - PENDING 상태는 조회 불가")
-    void getParticipationHistoryDetail_Pending_Fail() throws Exception {
+    @DisplayName("과거 미션 참여 이력 상세 조회 성공")
+    void getParticipationHistoryDetail_Pending_Success() throws Exception {
         // given
         Mission mission = Mission.builder()
                 .title("대기중인 미션")
@@ -1138,7 +1140,6 @@ class MissionControllerTest {
 
         Mission savedMission = missionRepository.save(mission);
 
-        // PENDING 참여 이력
         MissionParticipation participation = MissionParticipation.builder()
                 .mission(savedMission)
                 .user(testUser)
@@ -1149,7 +1150,11 @@ class MissionControllerTest {
         // when & then
         mockMvc.perform(get("/api/missions/history/" + savedParticipation.getId())
                         .with(user(userDetails)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participationId").value(savedParticipation.getId()))
+                .andExpect(jsonPath("$.missionId").value(savedMission.getId()))
+                .andExpect(jsonPath("$.title").value("대기중인 미션"))
+                .andExpect(jsonPath("$.participationStatus").value("PENDING"));
     }
 
     @Test
