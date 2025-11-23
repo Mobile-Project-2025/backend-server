@@ -34,3 +34,5 @@ app:
     username: ${USER_ID}
     password: ${USER_PASSWORD}
 
+server:
+  port: 8081

@@ -1,5 +1,6 @@
 package com.mobile.server.domain.auth.service;
 
+import com.mobile.server.domain.auth.dto.ProfileResponseDto;
 import com.mobile.server.domain.auth.dto.SignUpReq;
 import com.mobile.server.domain.auth.entity.RoleType;
 import com.mobile.server.domain.auth.entity.User;
@@ -65,5 +66,13 @@ public class UserService {
             throw new BusinessException(BusinessErrorCode.INVALID_CREDENTIALS);
         }
         return user;
+    }
+
+    //내 프로필 조회
+    @Transactional(readOnly = true)
+    public ProfileResponseDto getProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
+        return new ProfileResponseDto(user.getNickname(), user.getCumulativePoint());
     }
 }
