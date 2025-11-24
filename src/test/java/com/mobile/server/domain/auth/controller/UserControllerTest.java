@@ -68,6 +68,7 @@ class UserControllerTest {
                         .with(user(userDetails))
                         .with(csrf()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(testUser.getId()))
                 .andExpect(jsonPath("$.nickname").value("테스트유저"))
                 .andExpect(jsonPath("$.cumulativePoint").value(1000));
     }

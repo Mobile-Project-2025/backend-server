@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProfileResponseDto {
+    private Long userId;
     private String nickname;
     private Long cumulativePoint;
 }

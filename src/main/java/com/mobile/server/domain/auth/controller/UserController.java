@@ -31,13 +31,14 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "내 프로필 조회", description = "현재 로그인한 사용자의 닉네임과 보유 포인트를 조회합니다.")
+    @Operation(summary = "내 프로필 조회", description = "현재 로그인한 사용자의 ID, 닉네임과 보유 포인트를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "프로필 조회 성공",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ProfileResponseDto.class),
                             examples = @ExampleObject(value = """
                                     {
+                                      "userId": 1,
                                       "nickname": "홍길동",
                                       "cumulativePoint": 1500
                                     }

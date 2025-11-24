@@ -73,7 +73,7 @@ public class UserService {
     public ProfileResponseDto getProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.USER_NOT_FOUND));
-        return new ProfileResponseDto(user.getNickname(), user.getCumulativePoint());
+        return new ProfileResponseDto(user.getId(), user.getNickname(), user.getCumulativePoint());
     }
 
     //포인트 수정
