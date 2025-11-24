@@ -4,6 +4,8 @@ import com.mobile.server.domain.auth.jwt.CustomUserDetails;
 import com.mobile.server.domain.mission.dto.MissionDetailDto;
 import com.mobile.server.domain.mission.dto.MissionResponseDto;
 import com.mobile.server.domain.mission.dto.MissionSubmitResponseDto;
+import com.mobile.server.domain.mission.dto.ParticipationHistoryDetailDto;
+import com.mobile.server.domain.mission.dto.ParticipationHistoryDto;
 import com.mobile.server.domain.mission.dto.PendingMissionDto;
 import com.mobile.server.domain.mission.service.MissionManagementService;
 import com.mobile.server.domain.mission.service.MissionService;
@@ -350,6 +352,133 @@ public class MissionController {
     public ResponseEntity<List<PendingMissionDto>> getPendingMissions(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<PendingMissionDto> result = missionService.getPendingMissions(userDetails.getUserId());
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "과거 미션 참여 이력 조회",
+            description = "유저가 참여한 모든 미션 목록을 조회합니다. 승인 대기(PENDING), 승인(APPROVED), 반려(REJECTED) 상태를 모두 포함하며, 최신순으로 정렬됩니다. STUDENT 권한이 필요합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "과거 미션 참여 이력 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ParticipationHistoryDto.class)),
+                            examples = @ExampleObject(value = """
+                                    [
+                                      {
+                                        "participationId": 15,
+                                        "missionId": 3,
+                                        "title": "텀블러 사용하기",
+                                        "bannerUrl": "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png",
+                                        "iconUrl": "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png",
+                                        "missionPoint": 100,
+                                        "participationCount": 42,
+                                        "participationStatus": "APPROVED",
+                                        "participatedAt": "2025-11-20T14:30:00"
+                                      },
+                                      {
+                                        "participationId": 12,
+                                        "missionId": 5,
+                                        "title": "대중교통 이용하기",
+                                        "bannerUrl": "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/537500d1-4fe2-4f06-9cf3-38e46ed87d64.png",
+                                        "iconUrl": "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/fc7b54f9-6360-4d31-87a1-7151d7099c39.png",
+                                        "missionPoint": 150,
+                                        "participationCount": 28,
+                                        "participationStatus": "REJECTED",
+                                        "participatedAt": "2025-11-18T09:15:00"
+                                      }
+                                    ]
+                                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (STUDENT가 아닌 경우)",
+                    content = @Content(mediaType = "application/problem+json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "type": "about:blank",
+                                      "title": "Forbidden",
+                                      "status": 403,
+                                      "detail": "사용자는 해당 기능을 사용할 수 없습니다.",
+                                      "instance": "/api/missions/history"
+                                    }
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(mediaType = "application/problem+json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "type": "about:blank",
+                                      "title": "Not Found",
+                                      "status": 404,
+                                      "detail": "존재하지 않는 사용자입니다.",
+                                      "instance": "/api/missions/history"
+                                    }
+                                    """)))
+    })
+    @GetMapping("/history")
+    public ResponseEntity<List<ParticipationHistoryDto>> getParticipationHistory(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<ParticipationHistoryDto> result = missionService.getParticipationHistory(userDetails.getUserId());
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(
+            summary = "과거 미션 참여 이력 상세 조회",
+            description = "특정 미션 참여 이력의 상세 정보를 조회합니다. 제출한 사진, 미션 내용 등 추가 정보가 포함됩니다. 모든 참여 상태(PENDING, APPROVED, REJECTED)를 조회할 수 있습니다. STUDENT 권한이 필요합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "과거 미션 참여 이력 상세 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ParticipationHistoryDetailDto.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "participationId": 15,
+                                      "missionId": 3,
+                                      "title": "텀블러 사용하기",
+                                      "content": "개인 텀블러를 사용하여 일회용 컵 사용을 줄여주세요.",
+                                      "bannerUrl": "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/banners/011e06d1-3d95-4a66-a4b7-9a2ffcf14280.png",
+                                      "iconUrl": "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/icons/de7b9a05-1d2f-4588-8835-db6fd8593f3c.png",
+                                      "missionPoint": 100,
+                                      "participationCount": 42,
+                                      "category": "TUMBLER",
+                                      "missionType": "SCHEDULED",
+                                      "participationStatus": "APPROVED",
+                                      "submittedPhotoUrl": "https://mobile-reple.s3.ap-northeast-2.amazonaws.com/participations/abc123.jpg",
+                                      "participatedAt": "2025-11-20T14:30:00",
+                                      "startDate": "2025-11-01",
+                                      "deadLine": "2025-11-30"
+                                    }
+                                    """)
+                    )
+            ),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (STUDENT가 아닌 경우)",
+                    content = @Content(mediaType = "application/problem+json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "type": "about:blank",
+                                      "title": "Forbidden",
+                                      "status": 403,
+                                      "detail": "사용자는 해당 기능을 사용할 수 없습니다.",
+                                      "instance": "/api/missions/history/15"
+                                    }
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "참여 이력을 찾을 수 없음 (존재하지 않거나 다른 유저의 이력)",
+                    content = @Content(mediaType = "application/problem+json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "type": "about:blank",
+                                      "title": "Not Found",
+                                      "status": 404,
+                                      "detail": "요청하신 참여는 유효하지 않습니다.",
+                                      "instance": "/api/missions/history/999"
+                                    }
+                                    """)))
+    })
+    @GetMapping("/history/{participationId}")
+    public ResponseEntity<ParticipationHistoryDetailDto> getParticipationHistoryDetail(
+            @Parameter(description = "미션 참여 ID", required = true) @PathVariable Long participationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        ParticipationHistoryDetailDto result =
+                missionService.getParticipationHistoryDetail(userDetails.getUserId(), participationId);
         return ResponseEntity.ok(result);
     }
 }
